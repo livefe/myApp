@@ -1,0 +1,21 @@
+# 数据库配置
+database:
+  host: "localhost"  # 数据库主机
+  port: 3306         # 数据库端口
+  user: "root"       # 数据库用户名
+  password: "123456"  # 数据库密码
+  dbname: "app"  # 数据库名称
+
+# Redis配置
+redis:
+  host: "localhost"  # Redis主机
+  port: 6379         # Redis端口
+
+# JWT配置
+jwt:
+  secret: "your-secret-key"  # JWT密钥
+  expire: 3600  # JWT过期时间（秒）
+
+# 服务器配置
+server:
+  port: 8080  # 服务器端口
