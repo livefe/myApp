@@ -242,3 +242,31 @@ func (h *Handler) UpdateCategory(c *gin.Context) {
 }
 
 // DeleteCategory
+func (h *Handler) DeleteCategory(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID格式"})
+		return
+	}
+
+	_, err = h.service.GetCategoryByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "分类不存在"})
+		return
+	}
+
+	// 检查分类是否被使用
+	products, err := h.service.GetAllProducts(map[string]interface{}{"category_id": uint(id)})
+	if err == nil && len(products) > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "该分类下存在产品，无法删除"})
+		return
+	}
+
+	if err := h.service.DeleteCategory(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "分类删除成功"})
+}

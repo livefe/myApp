@@ -11,6 +11,13 @@ type ProductRepository interface {
 	Update(product *model.Product) error
 	Delete(id uint) error
 	GetProductsByCreatorID(creatorID uint) ([]model.Product, error)
+
+	// 产品分类相关方法
+	CreateCategory(category *model.ProductCategory) error
+	GetAllCategories() ([]model.ProductCategory, error)
+	GetCategoryByID(id uint) (*model.ProductCategory, error)
+	UpdateCategory(category *model.ProductCategory) error
+	DeleteCategory(id uint) error
 }
 
 type productRepository struct{}
@@ -70,6 +77,37 @@ func (r *productRepository) GetProductsByCreatorID(creatorID uint) ([]model.Prod
 		return nil, err
 	}
 	return products, nil
+}
+
+// 产品分类相关方法实现
+func (r *productRepository) CreateCategory(category *model.ProductCategory) error {
+	return model.GetDB().Create(category).Error
+}
+
+func (r *productRepository) GetAllCategories() ([]model.ProductCategory, error) {
+	var categories []model.ProductCategory
+	err := model.GetDB().Find(&categories).Error
+	if err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
+
+func (r *productRepository) GetCategoryByID(id uint) (*model.ProductCategory, error) {
+	var category model.ProductCategory
+	err := model.GetDB().First(&category, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &category, nil
+}
+
+func (r *productRepository) UpdateCategory(category *model.ProductCategory) error {
+	return model.GetDB().Save(category).Error
+}
+
+func (r *productRepository) DeleteCategory(id uint) error {
+	return model.GetDB().Delete(&model.ProductCategory{}, id).Error
 }
 
 // ProductCategoryRepository 定义产品分类仓库接口

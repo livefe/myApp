@@ -10,8 +10,7 @@ import (
 
 func InitProductRouter(r *gin.Engine) {
 	productRepo := repository.NewProductRepository()
-	productCategoryRepo := repository.NewProductCategoryRepository()
-	productService := service.NewProductService(productRepo, productCategoryRepo)
+	productService := service.NewProductService(productRepo)
 	handler := product.NewHandler(productService)
 	productGroup := r.Group("/api/product")
 	{
