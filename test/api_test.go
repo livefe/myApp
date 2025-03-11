@@ -17,7 +17,6 @@ var authToken string
 type RegisterRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 }
 
@@ -38,6 +37,13 @@ type CreateOrderRequest struct {
 	TotalPrice float64 `json:"total_price"`
 }
 
+type CreateProductRequest struct {
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	CategoryID  uint    `json:"category_id"`
+}
+
 func TestAPIEndpoints(t *testing.T) {
 	// 等待服务器启动
 	time.Sleep(2 * time.Second)
@@ -51,7 +57,6 @@ func TestAPIEndpoints(t *testing.T) {
 	registerData := RegisterRequest{
 		Username: username,
 		Password: "password123",
-		Email:    "test" + strconv.Itoa(randomID) + "@example.com",
 		Phone:    "1234567890",
 	}
 	registerJSON, _ := json.Marshal(registerData)
@@ -129,6 +134,17 @@ func TestAPIEndpoints(t *testing.T) {
 		t.Errorf("创建社区失败，状态码: %d", resp.StatusCode)
 	}
 
+	// 获取社区ID用于后续测试
+	var communityResp map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&communityResp); err != nil {
+		t.Fatalf("解析社区响应失败: %v", err)
+	}
+	communityDataResp, ok := communityResp["data"].(map[string]interface{})
+	if !ok {
+		t.Fatal("社区响应格式错误")
+	}
+	communityID := uint(communityDataResp["id"].(float64))
+
 	// 5. 测试获取社区列表
 	req, _ = http.NewRequest("GET", baseURL+"/api/community/list", nil)
 	req.Header.Set("Authorization", "Bearer "+authToken)
@@ -170,6 +186,73 @@ func TestAPIEndpoints(t *testing.T) {
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("获取订单信息失败，状态码: %d", resp.StatusCode)
+	}
+
+	// 8. 测试创建产品
+	productData := CreateProductRequest{
+		Name:        "测试产品",
+		Description: "这是一个测试产品",
+		Price:       99.99,
+		CategoryID:  1,
+	}
+	productJSON, _ := json.Marshal(productData)
+	req, _ = http.NewRequest("POST", baseURL+"/api/product/create", bytes.NewBuffer(productJSON))
+	req.Header.Set("Authorization", "Bearer "+authToken)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Fatalf("创建产品请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("创建产品失败，状态码: %d", resp.StatusCode)
+	}
+
+	// 获取产品ID
+	var productResp map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&productResp); err != nil {
+		t.Fatalf("解析产品响应失败: %v", err)
+	}
+	productDataResp, ok := productResp["data"].(map[string]interface{})
+	if !ok {
+		t.Fatal("产品响应格式错误")
+	}
+	productID := uint(productDataResp["id"].(float64))
+
+	// 9. 测试获取产品列表
+	req, _ = http.NewRequest("GET", baseURL+"/api/product/list", nil)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Fatalf("获取产品列表请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("获取产品列表失败，状态码: %d", resp.StatusCode)
+	}
+
+	// 10. 测试获取单个产品
+	req, _ = http.NewRequest("GET", fmt.Sprintf("%s/api/product/%d", baseURL, productID), nil)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Fatalf("获取产品信息请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("获取产品信息失败，状态码: %d", resp.StatusCode)
+	}
+
+	// 11. 测试获取单个社区
+	req, _ = http.NewRequest("GET", fmt.Sprintf("%s/api/community/%d", baseURL, communityID), nil)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Fatalf("获取社区信息请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("获取社区信息失败，状态码: %d", resp.StatusCode)
 	}
 
 	fmt.Println("所有API接口测试完成！")

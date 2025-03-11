@@ -13,9 +13,9 @@ import (
 // 这个结构体可以被其他模型嵌入，以提供统一的ID、时间戳和软删除功能
 type BaseModel struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	CreatedAt time.Time      `gorm:"type:datetime" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"type:datetime" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"type:datetime" json:"-"`
 }
 
 var db *gorm.DB

@@ -56,7 +56,6 @@ func generateUsers(db *gorm.DB) []model.User {
 		now := time.Now()
 		user := model.User{
 			Username:  faker.Username(),
-			Email:     faker.Email(),
 			Phone:     faker.Phonenumber(),
 			Password:  "$2a$10$IZkFRxQr2oceXrF.Zl.pBeu4FnuWPFjxog7eaQoXeP5/WlEFONYe2", // 默认密码：123456
 			Avatar:    fmt.Sprintf("https://i.pravatar.cc/150?img=%d", i+1),

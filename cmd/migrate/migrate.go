@@ -22,6 +22,8 @@ func main() {
 		&model.Community{},
 		&model.CommunityMember{},
 		&model.Order{},
+		&model.Product{},
+		&model.ProductCategory{},
 	)
 
 	if err != nil {
