@@ -1,4 +1,4 @@
-package community
+package handler
 
 import (
 	"myApp/model"
@@ -9,15 +9,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Handler struct {
+type CommunityHandler struct {
 	service service.CommunityService
 }
 
-func NewCommunityHandler(s service.CommunityService) *Handler {
-	return &Handler{service: s}
+func NewCommunityHandler(s service.CommunityService) *CommunityHandler {
+	return &CommunityHandler{service: s}
 }
 
-func (h *Handler) CreateCommunity(c *gin.Context) {
+func (h *CommunityHandler) CreateCommunity(c *gin.Context) {
 	var community model.Community
 	if err := c.ShouldBindJSON(&community); err != nil {
 		response.BadRequest(c, "无效的请求参数")
@@ -41,7 +41,7 @@ func (h *Handler) CreateCommunity(c *gin.Context) {
 	response.Success(c, createdCommunity)
 }
 
-func (h *Handler) GetCommunityList(c *gin.Context) {
+func (h *CommunityHandler) GetCommunityList(c *gin.Context) {
 	communities, err := h.service.GetAllCommunities()
 	if err != nil {
 		response.ServerError(c, err.Error())
@@ -51,11 +51,11 @@ func (h *Handler) GetCommunityList(c *gin.Context) {
 	response.Success(c, communities)
 }
 
-func (h *Handler) GetCommunity(c *gin.Context) {
+func (h *CommunityHandler) GetCommunity(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		response.BadRequest(c, "无效的ID格式")
+		response.BadRequest(c, "无效的社区ID")
 		return
 	}
 

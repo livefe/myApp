@@ -1,7 +1,7 @@
 package router
 
 import (
-	"myApp/handler/product"
+	"myApp/handler"
 	"myApp/repository"
 	"myApp/service"
 
@@ -11,11 +11,11 @@ import (
 func InitProductRouter(r *gin.Engine) {
 	productRepo := repository.NewProductRepository()
 	productService := service.NewProductService(productRepo)
-	handler := product.NewHandler(productService)
+	productHandler := handler.NewProductHandler(productService)
 	productGroup := r.Group("/api/product")
 	{
-		productGroup.POST("/create", handler.CreateProduct)
-		productGroup.GET("/list", handler.GetAllProducts)
-		productGroup.GET("/:id", handler.GetProduct)
+		productGroup.POST("/create", productHandler.CreateProduct)
+		productGroup.GET("/list", productHandler.GetAllProducts)
+		productGroup.GET("/:id", productHandler.GetProduct)
 	}
 }

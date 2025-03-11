@@ -1,7 +1,7 @@
 package router
 
 import (
-	"myApp/handler/order"
+	"myApp/handler"
 	"myApp/repository"
 	"myApp/service"
 
@@ -11,10 +11,10 @@ import (
 func InitOrderRouter(r *gin.Engine) {
 	orderRepo := repository.NewOrderRepository()
 	orderService := service.NewOrderService(orderRepo)
-	handler := order.NewHandler(orderService)
+	orderHandler := handler.NewOrderHandler(orderService)
 	orderGroup := r.Group("/api/order")
 	{
-		orderGroup.POST("/create", handler.CreateOrder)
-		orderGroup.GET("/:id", handler.GetOrder)
+		orderGroup.POST("/create", orderHandler.CreateOrder)
+		orderGroup.GET("/:id", orderHandler.GetOrder)
 	}
 }

@@ -1,7 +1,7 @@
 package router
 
 import (
-	"myApp/handler/user"
+	"myApp/handler"
 	"myApp/repository"
 	"myApp/service"
 
@@ -11,11 +11,11 @@ import (
 func InitUserRouter(r *gin.Engine) {
 	userRepo := repository.NewUserRepository()
 	userService := service.NewUserService(userRepo)
-	handler := user.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService)
 	userGroup := r.Group("/api/user")
 	{
-		userGroup.POST("/register", handler.Register)
-		userGroup.POST("/login", handler.Login)
-		userGroup.GET("/info", handler.GetUserInfo)
+		userGroup.POST("/register", userHandler.Register)
+		userGroup.POST("/login", userHandler.Login)
+		userGroup.GET("/info", userHandler.GetUserInfo)
 	}
 }

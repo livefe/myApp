@@ -1,4 +1,4 @@
-package order
+package handler
 
 import (
 	"strconv"
@@ -10,15 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Handler struct {
+type OrderHandler struct {
 	service service.OrderService
 }
 
-func NewHandler(s service.OrderService) *Handler {
-	return &Handler{service: s}
+func NewOrderHandler(s service.OrderService) *OrderHandler {
+	return &OrderHandler{service: s}
 }
 
-func (h *Handler) CreateOrder(c *gin.Context) {
+func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	var order model.Order
 	if err := c.ShouldBindJSON(&order); err != nil {
 		response.BadRequest(c, "无效的请求参数")
@@ -42,7 +42,7 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 	response.Success(c, createdOrder)
 }
 
-func (h *Handler) GetOrder(c *gin.Context) {
+func (h *OrderHandler) GetOrder(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
@@ -50,22 +50,9 @@ func (h *Handler) GetOrder(c *gin.Context) {
 		return
 	}
 
-	// 从上下文获取用户ID
-	userID, exists := c.Get("userID")
-	if !exists {
-		response.Unauthorized(c, "用户未认证")
-		return
-	}
-
 	order, err := h.service.GetOrder(uint(id))
 	if err != nil {
 		response.NotFound(c, "订单不存在")
-		return
-	}
-
-	// 验证订单所属权
-	if order.UserID != userID.(uint) {
-		response.Fail(c, 403, "无权访问此订单")
 		return
 	}
 

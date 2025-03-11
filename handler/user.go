@@ -1,4 +1,4 @@
-package user
+package handler
 
 import (
 	"myApp/config"
@@ -11,15 +11,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type Handler struct {
+type UserHandler struct {
 	service service.UserService
 }
 
-func NewUserHandler(s service.UserService) *Handler {
-	return &Handler{service: s}
+func NewUserHandler(s service.UserService) *UserHandler {
+	return &UserHandler{service: s}
 }
 
-func (h *Handler) Register(c *gin.Context) {
+func (h *UserHandler) Register(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		response.BadRequest(c, "无效的请求参数")
@@ -35,7 +35,7 @@ func (h *Handler) Register(c *gin.Context) {
 	response.Success(c, createdUser)
 }
 
-func (h *Handler) Login(c *gin.Context) {
+func (h *UserHandler) Login(c *gin.Context) {
 	var credentials struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -68,7 +68,7 @@ func (h *Handler) Login(c *gin.Context) {
 	response.SuccessWithToken(c, tokenString, user)
 }
 
-func (h *Handler) GetUserInfo(c *gin.Context) {
+func (h *UserHandler) GetUserInfo(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		response.Unauthorized(c, "未授权访问")
