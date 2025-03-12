@@ -19,11 +19,10 @@ func main() {
 	// 自动迁移所有模型
 	err := db.AutoMigrate(
 		&model.User{},
-		&model.Community{},
-		&model.CommunityMember{},
-		&model.Order{},
-		&model.Product{},
-		&model.ProductCategory{},
+		&model.House{},
+		&model.Favorite{},
+		&model.Viewing{},
+		&model.Landlord{},
 	)
 
 	if err != nil {

@@ -12,10 +12,10 @@ import (
 // BaseModel 定义了所有模型共享的基础字段
 // 这个结构体可以被其他模型嵌入，以提供统一的ID、时间戳和软删除功能
 type BaseModel struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `gorm:"type:datetime" json:"created_at"`
-	UpdatedAt time.Time      `gorm:"type:datetime" json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"type:datetime" json:"-"`
+	ID        uint           `gorm:"type:int unsigned;primaryKey;comment:主键ID" json:"id"`
+	CreatedAt time.Time      `gorm:"type:datetime;comment:创建时间" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"type:datetime;comment:更新时间" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"type:datetime;comment:删除时间" json:"-"`
 }
 
 var db *gorm.DB

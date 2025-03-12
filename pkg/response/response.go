@@ -76,3 +76,11 @@ func SuccessWithToken(c *gin.Context, token string, data interface{}) {
 		"data":    data,
 	})
 }
+
+// Forbidden 权限不足
+func Forbidden(c *gin.Context, message string, data ...interface{}) {
+	if message == "" {
+		message = "权限不足"
+	}
+	Fail(c, http.StatusForbidden, message, data...)
+}
