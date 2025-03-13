@@ -20,5 +20,5 @@ func SetupRouter(r *gin.Engine) {
 	InitHouseRouter(r)    // 初始化房源相关路由
 	InitViewingRouter(r)  // 初始化预约看房相关路由
 	InitFavoriteRouter(r) // 初始化收藏相关路由
-	RegisterLandlordRoutes(r.Group("/api")) // 初始化房东相关路由
+	InitLandlordRouter(r) // 初始化房东相关路由
 }
