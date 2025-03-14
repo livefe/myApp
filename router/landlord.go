@@ -2,6 +2,7 @@ package router
 
 import (
 	"myApp/handler"
+	"myApp/middleware"
 	"myApp/repository"
 	"myApp/service"
 
@@ -23,11 +24,11 @@ func InitLandlordRouter(r *gin.Engine) {
 
 	// 创建房东路由组，所有房东相关接口都在/api/landlord路径下
 	landlordGroup := r.Group("/api/landlord")
+	// 所有房东接口都需要认证，添加JWT中间件
+	landlordGroup.Use(middleware.JWTAuth())
 	{
-		// 所有房东接口都需要认证
-		landlordGroup.POST("/create", landlordHandler.CreateLandlord)         // 申请成为房东
-		landlordGroup.GET("/profile", landlordHandler.GetLandlordProfile)    // 获取房东个人资料
-		landlordGroup.PUT("/profile", landlordHandler.UpdateLandlord)        // 更新房东信息
-		landlordGroup.PUT("/verify/:id", landlordHandler.VerifyLandlord)     // 管理员验证房东身份（需要管理员权限）
+		landlordGroup.POST("/create", landlordHandler.CreateLandlord)    // 申请成为房东
+		landlordGroup.GET("/profile", landlordHandler.GetLandlordProfile) // 获取房东个人资料
+		landlordGroup.PUT("/profile", landlordHandler.UpdateLandlord)     // 更新房东信息
 	}
 }

@@ -2,6 +2,7 @@ package router
 
 import (
 	"myApp/handler"
+	"myApp/middleware"
 	"myApp/repository"
 	"myApp/service"
 
@@ -24,12 +25,13 @@ func InitHouseRouter(r *gin.Engine) {
 		houseGroup.GET("/list", houseHandler.GetAllHouses) // 获取房源列表
 		houseGroup.GET("/:id", houseHandler.GetHouse)      // 获取房源详情
 
-		// 需要认证的接口，需要JWT认证
+		// 需要认证的接口，添加JWT中间件
 		authorizedGroup := houseGroup.Group("/")
+		authorizedGroup.Use(middleware.JWTAuth())
 		{
-			authorizedGroup.POST("/create", houseHandler.CreateHouse)         // 创建房源
-			authorizedGroup.PUT("/:id", houseHandler.UpdateHouse)             // 更新房源
-			authorizedGroup.DELETE("/:id", houseHandler.DeleteHouse)          // 删除房源
+			authorizedGroup.POST("/create", houseHandler.CreateHouse)        // 创建房源
+			authorizedGroup.PUT("/:id", houseHandler.UpdateHouse)            // 更新房源
+			authorizedGroup.DELETE("/:id", houseHandler.DeleteHouse)         // 删除房源
 			authorizedGroup.GET("/landlord", houseHandler.GetLandlordHouses) // 获取房东的所有房源
 		}
 	}

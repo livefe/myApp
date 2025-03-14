@@ -11,20 +11,6 @@ import (
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 定义不需要验证的路由
-		publicPaths := []string{
-			"/api/user/register",
-			"/api/user/login",
-		}
-
-		// 检查当前路径是否在公共路径列表中
-		for _, path := range publicPaths {
-			if c.Request.URL.Path == path {
-				c.Next()
-				return
-			}
-		}
-
 		tokenString := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {

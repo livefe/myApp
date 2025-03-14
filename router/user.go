@@ -2,6 +2,7 @@ package router
 
 import (
 	"myApp/handler"
+	"myApp/middleware"
 	"myApp/repository"
 	"myApp/service"
 
@@ -16,12 +17,19 @@ func InitUserRouter(r *gin.Engine) {
 	userService := service.NewUserService(userRepo)
 	// 创建用户处理器实例，注入服务依赖
 	userHandler := handler.NewUserHandler(userService)
-	
+
 	// 创建用户路由组，所有用户相关接口都在/api/user路径下
 	userGroup := r.Group("/api/user")
 	{
+		// 公开接口，不需要认证
 		userGroup.POST("/register", userHandler.Register) // 用户注册接口
 		userGroup.POST("/login", userHandler.Login)       // 用户登录接口
-		userGroup.GET("/info", userHandler.GetUserInfo)   // 获取用户信息接口，需要JWT认证
+
+		// 需要认证的接口，添加JWT中间件
+		authorizedGroup := userGroup.Group("/")
+		authorizedGroup.Use(middleware.JWTAuth())
+		{
+			authorizedGroup.GET("/info", userHandler.GetUserInfo) // 获取用户信息接口，需要JWT认证
+		}
 	}
 }

@@ -2,6 +2,7 @@ package router
 
 import (
 	"myApp/handler"
+	"myApp/middleware"
 	"myApp/repository"
 	"myApp/service"
 
@@ -19,12 +20,13 @@ func InitFavoriteRouter(r *gin.Engine) {
 
 	// 创建收藏路由组，所有收藏相关接口都在/api/favorite路径下
 	favoriteGroup := r.Group("/api/favorite")
+	// 所有收藏接口都需要认证，添加JWT中间件
+	favoriteGroup.Use(middleware.JWTAuth())
 	{
-		// 所有收藏接口都需要认证
-		favoriteGroup.POST("/add", favoriteHandler.AddFavorite)                // 添加收藏
-		favoriteGroup.DELETE("/:id", favoriteHandler.RemoveFavorite)          // 删除收藏
-		favoriteGroup.GET("/list", favoriteHandler.GetUserFavorites)         // 获取用户的所有收藏
+		favoriteGroup.POST("/add", favoriteHandler.AddFavorite)                 // 添加收藏
+		favoriteGroup.DELETE("/:id", favoriteHandler.RemoveFavorite)            // 删除收藏
+		favoriteGroup.GET("/list", favoriteHandler.GetUserFavorites)            // 获取用户的所有收藏
 		favoriteGroup.POST("/toggle/:house_id", favoriteHandler.ToggleFavorite) // 切换收藏状态
-		favoriteGroup.GET("/check/:house_id", favoriteHandler.CheckFavorite)   // 检查是否已收藏
+		favoriteGroup.GET("/check/:house_id", favoriteHandler.CheckFavorite)    // 检查是否已收藏
 	}
 }
