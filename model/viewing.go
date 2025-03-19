@@ -8,7 +8,7 @@ type Viewing struct {
 	BaseModel
 	HouseID     uint       `gorm:"type:int unsigned;comment:房源ID" json:"house_id"`                // 房源ID
 	UserID      uint       `gorm:"type:int unsigned;comment:用户ID" json:"user_id"`                 // 用户ID
-	ViewingTime time.Time  `gorm:"type:datetime;comment:预约看房时间" json:"viewing_time"` // 预约看房时间
+	ViewingTime time.Time  `gorm:"type:datetime;not null;comment:预约看房时间" json:"viewing_time"` // 预约看房时间
 	Status      int        `gorm:"type:tinyint;default:0;comment:状态：0-待确认，1-已确认，2-已完成，3-已取消" json:"status"`          // 状态：0-待确认，1-已确认，2-已完成，3-已取消
 	Remark      string     `gorm:"type:text;comment:备注信息" json:"remark"`          // 备注信息
 	ContactName string     `gorm:"type:varchar(50);comment:联系人姓名" json:"contact_name"`      // 联系人姓名

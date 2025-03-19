@@ -24,10 +24,23 @@ func NewViewingHandler(s service.ViewingService, hs service.HouseService) *Viewi
 
 // CreateViewing 创建预约看房
 func (h *ViewingHandler) CreateViewing(c *gin.Context) {
-	var viewing model.Viewing
-	if err := c.ShouldBindJSON(&viewing); err != nil {
+	// 定义请求结构体，与测试中使用的结构体字段保持一致
+	var req struct {
+		HouseID  uint      `json:"house_id"`
+		ViewDate time.Time `json:"view_date"`
+		Message  string    `json:"message"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "无效的请求参数")
 		return
+	}
+
+	// 创建预约看房模型
+	viewing := model.Viewing{
+		HouseID:     req.HouseID,
+		ViewingTime: req.ViewDate, // 将ViewDate映射到ViewingTime
+		Remark:      req.Message,  // 将Message映射到Remark
 	}
 
 	// 从上下文获取用户ID（由JWT中间件设置）
@@ -49,7 +62,8 @@ func (h *ViewingHandler) CreateViewing(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, viewing)
+	// 返回成功响应，包含预约ID
+	response.Success(c, gin.H{"id": viewing.ID})
 }
 
 // GetViewing 获取预约看房详情
@@ -84,7 +98,29 @@ func (h *ViewingHandler) GetViewing(c *gin.Context) {
 		}
 	}
 
-	response.Success(c, viewing)
+	// 将状态码转换为状态描述
+	statusText := "pending"
+	switch viewing.Status {
+	case model.ViewingConfirmed:
+		statusText = "confirmed"
+	case model.ViewingCompleted:
+		statusText = "completed"
+	case model.ViewingCancelled:
+		statusText = "cancelled"
+	}
+
+	// 构建响应数据
+	responseData := gin.H{
+		"id":           viewing.ID,
+		"house_id":     viewing.HouseID,
+		"user_id":      viewing.UserID,
+		"viewing_time": viewing.ViewingTime,
+		"status":       statusText,
+		"remark":       viewing.Remark,
+		"created_at":   viewing.CreatedAt,
+	}
+
+	response.Success(c, responseData)
 }
 
 // GetUserViewings 获取用户的所有预约看房记录
@@ -102,7 +138,7 @@ func (h *ViewingHandler) GetUserViewings(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, viewings)
+	response.Success(c, gin.H{"viewings": viewings})
 }
 
 // GetHouseViewings 获取房源的所有预约看房记录
@@ -134,7 +170,7 @@ func (h *ViewingHandler) GetHouseViewings(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, viewings)
+	response.Success(c, gin.H{"viewings": viewings})
 }
 
 // ConfirmViewing 确认预约看房

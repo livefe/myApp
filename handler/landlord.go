@@ -64,12 +64,6 @@ func (h *LandlordHandler) GetLandlordProfile(c *gin.Context) {
 
 // UpdateLandlord 更新房东信息
 func (h *LandlordHandler) UpdateLandlord(c *gin.Context) {
-	var landlord model.Landlord
-	if err := c.ShouldBindJSON(&landlord); err != nil {
-		response.BadRequest(c, "无效的请求参数")
-		return
-	}
-
 	// 从上下文获取用户ID（由JWT中间件设置）
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -84,15 +78,65 @@ func (h *LandlordHandler) UpdateLandlord(c *gin.Context) {
 		return
 	}
 
-	// 设置ID
-	landlord.ID = existingLandlord.ID
+	// 解析请求数据
+	var updateData map[string]interface{}
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		response.BadRequest(c, "无效的请求参数")
+		return
+	}
 
-	if err := h.service.UpdateLandlord(&landlord); err != nil {
+	// 更新房东信息，只更新请求中包含的字段
+	for key, value := range updateData {
+		switch key {
+		case "phone_number":
+			if phoneNumber, ok := value.(string); ok {
+				existingLandlord.PhoneNumber = phoneNumber
+			}
+		case "address":
+			if address, ok := value.(string); ok {
+				existingLandlord.Address = address
+			}
+		case "id_card_front":
+			if idCardFront, ok := value.(string); ok {
+				existingLandlord.IdCardFront = idCardFront
+			}
+		case "id_card_back":
+			if idCardBack, ok := value.(string); ok {
+				existingLandlord.IdCardBack = idCardBack
+			}
+		case "bank_account":
+			if bankAccount, ok := value.(string); ok {
+				existingLandlord.BankAccount = bankAccount
+			}
+		case "bank_name":
+			if bankName, ok := value.(string); ok {
+				existingLandlord.BankName = bankName
+			}
+		case "account_name":
+			if accountName, ok := value.(string); ok {
+				existingLandlord.AccountName = accountName
+			}
+		case "introduction":
+			if introduction, ok := value.(string); ok {
+				existingLandlord.Introduction = introduction
+			}
+		case "real_name":
+			if realName, ok := value.(string); ok {
+				existingLandlord.RealName = realName
+			}
+		case "id_number":
+			if idNumber, ok := value.(string); ok {
+				existingLandlord.IDNumber = idNumber
+			}
+		}
+	}
+
+	if err := h.service.UpdateLandlord(existingLandlord); err != nil {
 		response.ServerError(c, err.Error())
 		return
 	}
 
-	response.Success(c, landlord)
+	response.Success(c, existingLandlord)
 }
 
 // VerifyLandlord 管理员验证房东身份

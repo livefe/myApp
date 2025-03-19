@@ -3,6 +3,10 @@ package model
 type Landlord struct {
 	BaseModel
 	UserID       uint   `gorm:"type:int unsigned;comment:关联的用户ID" json:"user_id"`              // 关联的用户ID
+	RealName     string `gorm:"type:varchar(50);comment:真实姓名" json:"real_name"`              // 真实姓名
+	IDNumber     string `gorm:"type:varchar(18);comment:身份证号" json:"id_number"`              // 身份证号
+	PhoneNumber  string `gorm:"type:varchar(20);comment:联系电话" json:"phone_number"`           // 联系电话
+	Address      string `gorm:"type:varchar(255);comment:联系地址" json:"address"`               // 联系地址
 	Verified     bool   `gorm:"type:tinyint(1);default:false;comment:是否已认证" json:"verified"`           // 是否已认证
 	IdCardFront  string `gorm:"type:varchar(255);comment:身份证正面照片URL" json:"id_card_front"`          // 身份证正面照片URL
 	IdCardBack   string `gorm:"type:varchar(255);comment:身份证背面照片URL" json:"id_card_back"`           // 身份证背面照片URL
