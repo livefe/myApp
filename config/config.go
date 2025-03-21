@@ -37,7 +37,8 @@ type JWTConfig struct {
 }
 
 type ServerConfig struct {
-	Port int `mapstructure:"port"`
+	Port int    `mapstructure:"port"`
+	Mode string `mapstructure:"mode"` // 运行模式：debug或release
 }
 
 var Conf *Config
@@ -45,11 +46,11 @@ var Conf *Config
 // InitConfig 初始化配置文件
 func InitConfig() {
 	// 设置配置文件的名称和路径
-	viper.SetConfigName("config")   // 配置文件的名称（不带扩展名）
-	viper.AddConfigPath("./config") // 配置文件所在路径
+	viper.SetConfigName("config")       // 配置文件的名称（不带扩展名）
+	viper.AddConfigPath("./config")     // 配置文件所在路径
 	viper.AddConfigPath("../../config") // 从cmd/server目录启动时的相对路径
-	viper.AddConfigPath("../config") // 从其他子目录启动时的相对路径
-	viper.SetConfigType("yaml")     // 配置文件类型
+	viper.AddConfigPath("../config")    // 从其他子目录启动时的相对路径
+	viper.SetConfigType("yaml")         // 配置文件类型
 
 	// 读取配置文件
 	if err := viper.ReadInConfig(); err != nil {
@@ -85,5 +86,11 @@ func InitConfig() {
 		log.Fatal("缺少服务器端口配置")
 	}
 
+	// 检查服务器模式配置，如果未设置则默认为debug模式
+	if Conf.Server.Mode == "" {
+		Conf.Server.Mode = "debug"
+	}
+
 	fmt.Println("服务器端口:", Conf.Server.Port)
+	fmt.Println("服务器模式:", Conf.Server.Mode)
 }

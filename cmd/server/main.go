@@ -20,8 +20,18 @@ func main() {
 	// 初始化Redis
 	redis.InitRedis()
 
+	// 设置Gin运行模式
+	if config.Conf.Server.Mode == "release" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
 	// 创建Gin实例
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Recovery())
+
+	// 初始化路由
 	router.SetupRouter(r)
 
 	// 启动HTTP服务
