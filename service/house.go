@@ -76,7 +76,7 @@ func (s *houseService) GetHouseByID(id uint) (*model.House, error) {
 func (s *houseService) GetAllHouses(params map[string]interface{}) ([]model.House, error) {
 	// 构造缓存键，基于查询参数
 	var cacheKey string
-	if params == nil || len(params) == 0 {
+	if len(params) == 0 {
 		cacheKey = "houses:list:all"
 	} else {
 		// 对于有参数的查询，生成唯一的缓存键
