@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"myApp/config"
 	"myApp/model"
+	"myApp/pkg/redis"
 	"myApp/router"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,9 @@ func main() {
 
 	// 初始化数据库
 	model.InitDB()
+
+	// 初始化Redis
+	redis.InitRedis()
 
 	// 创建Gin实例
 	r := gin.Default()
