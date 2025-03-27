@@ -2,6 +2,8 @@ package repository
 
 import (
 	"myApp/model"
+	
+	"gorm.io/gorm"
 )
 
 type FavoriteRepository interface {
@@ -15,19 +17,23 @@ type FavoriteRepository interface {
 	DeleteByUserAndHouse(userID, houseID uint) error
 }
 
-type favoriteRepository struct{}
+type favoriteRepository struct{
+	db *gorm.DB
+}
 
 func NewFavoriteRepository() FavoriteRepository {
-	return &favoriteRepository{}
+	return &favoriteRepository{
+		db: model.GetDB(),
+	}
 }
 
 func (r *favoriteRepository) Create(favorite *model.Favorite) error {
-	return model.GetDB().Create(favorite).Error
+	return r.db.Create(favorite).Error
 }
 
 func (r *favoriteRepository) GetByID(id uint) (*model.Favorite, error) {
 	var favorite model.Favorite
-	if err := model.GetDB().First(&favorite, id).Error; err != nil {
+	if err := r.db.First(&favorite, id).Error; err != nil {
 		return nil, err
 	}
 	return &favorite, nil
@@ -35,7 +41,7 @@ func (r *favoriteRepository) GetByID(id uint) (*model.Favorite, error) {
 
 func (r *favoriteRepository) GetAll(params map[string]interface{}) ([]model.Favorite, error) {
 	var favorites []model.Favorite
-	db := model.GetDB()
+	db := r.db
 
 	// 根据参数构建查询条件
 	if params != nil {
@@ -69,16 +75,16 @@ func (r *favoriteRepository) GetAll(params map[string]interface{}) ([]model.Favo
 }
 
 func (r *favoriteRepository) Update(favorite *model.Favorite) error {
-	return model.GetDB().Save(favorite).Error
+	return r.db.Save(favorite).Error
 }
 
 func (r *favoriteRepository) Delete(id uint) error {
-	return model.GetDB().Delete(&model.Favorite{}, id).Error
+	return r.db.Delete(&model.Favorite{}, id).Error
 }
 
 func (r *favoriteRepository) GetFavoritesByUserID(userID uint) ([]model.Favorite, error) {
 	var favorites []model.Favorite
-	if err := model.GetDB().Where("user_id = ?", userID).Find(&favorites).Error; err != nil {
+	if err := r.db.Where("user_id = ?", userID).Find(&favorites).Error; err != nil {
 		return nil, err
 	}
 	return favorites, nil
@@ -86,10 +92,10 @@ func (r *favoriteRepository) GetFavoritesByUserID(userID uint) ([]model.Favorite
 
 func (r *favoriteRepository) IsFavorite(userID, houseID uint) (bool, error) {
 	var count int64
-	err := model.GetDB().Model(&model.Favorite{}).Where("user_id = ? AND house_id = ?", userID, houseID).Count(&count).Error
+	err := r.db.Model(&model.Favorite{}).Where("user_id = ? AND house_id = ?", userID, houseID).Count(&count).Error
 	return count > 0, err
 }
 
 func (r *favoriteRepository) DeleteByUserAndHouse(userID, houseID uint) error {
-	return model.GetDB().Where("user_id = ? AND house_id = ?", userID, houseID).Delete(&model.Favorite{}).Error
+	return r.db.Where("user_id = ? AND house_id = ?", userID, houseID).Delete(&model.Favorite{}).Error
 }

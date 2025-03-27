@@ -2,6 +2,8 @@ package repository
 
 import (
 	"myApp/model"
+
+	"gorm.io/gorm"
 )
 
 type UserRepository interface {
@@ -11,19 +13,23 @@ type UserRepository interface {
 	Update(user *model.User) error
 }
 
-type userRepository struct{}
+type userRepository struct {
+	db *gorm.DB
+}
 
 func NewUserRepository() UserRepository {
-	return &userRepository{}
+	return &userRepository{
+		db: model.GetDB(),
+	}
 }
 
 func (r *userRepository) Create(user *model.User) error {
-	return model.GetDB().Create(user).Error
+	return r.db.Create(user).Error
 }
 
 func (r *userRepository) FindByUsername(username string) (*model.User, error) {
 	var user model.User
-	if err := model.GetDB().Where("username = ?", username).First(&user).Error; err != nil {
+	if err := r.db.Where("username = ?", username).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -31,12 +37,12 @@ func (r *userRepository) FindByUsername(username string) (*model.User, error) {
 
 func (r *userRepository) FindByID(id uint) (*model.User, error) {
 	var user model.User
-	if err := model.GetDB().First(&user, id).Error; err != nil {
+	if err := r.db.First(&user, id).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
 func (r *userRepository) Update(user *model.User) error {
-	return model.GetDB().Save(user).Error
+	return r.db.Save(user).Error
 }

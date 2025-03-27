@@ -2,6 +2,8 @@ package repository
 
 import (
 	"myApp/model"
+
+	"gorm.io/gorm"
 )
 
 type ViewingRepository interface {
@@ -15,19 +17,23 @@ type ViewingRepository interface {
 	UpdateStatus(id uint, status int) error
 }
 
-type viewingRepository struct{}
+type viewingRepository struct {
+	db *gorm.DB
+}
 
 func NewViewingRepository() ViewingRepository {
-	return &viewingRepository{}
+	return &viewingRepository{
+		db: model.GetDB(),
+	}
 }
 
 func (r *viewingRepository) Create(viewing *model.Viewing) error {
-	return model.GetDB().Create(viewing).Error
+	return r.db.Create(viewing).Error
 }
 
 func (r *viewingRepository) GetByID(id uint) (*model.Viewing, error) {
 	var viewing model.Viewing
-	if err := model.GetDB().First(&viewing, id).Error; err != nil {
+	if err := r.db.First(&viewing, id).Error; err != nil {
 		return nil, err
 	}
 	return &viewing, nil
@@ -35,7 +41,7 @@ func (r *viewingRepository) GetByID(id uint) (*model.Viewing, error) {
 
 func (r *viewingRepository) GetAll(params map[string]interface{}) ([]model.Viewing, error) {
 	var viewings []model.Viewing
-	db := model.GetDB()
+	db := r.db
 
 	// 根据参数构建查询条件
 	if params != nil {
@@ -78,16 +84,16 @@ func (r *viewingRepository) GetAll(params map[string]interface{}) ([]model.Viewi
 }
 
 func (r *viewingRepository) Update(viewing *model.Viewing) error {
-	return model.GetDB().Save(viewing).Error
+	return r.db.Save(viewing).Error
 }
 
 func (r *viewingRepository) Delete(id uint) error {
-	return model.GetDB().Delete(&model.Viewing{}, id).Error
+	return r.db.Delete(&model.Viewing{}, id).Error
 }
 
 func (r *viewingRepository) GetViewingsByUserID(userID uint) ([]model.Viewing, error) {
 	var viewings []model.Viewing
-	if err := model.GetDB().Where("user_id = ?", userID).Find(&viewings).Error; err != nil {
+	if err := r.db.Where("user_id = ?", userID).Find(&viewings).Error; err != nil {
 		return nil, err
 	}
 	return viewings, nil
@@ -95,12 +101,12 @@ func (r *viewingRepository) GetViewingsByUserID(userID uint) ([]model.Viewing, e
 
 func (r *viewingRepository) GetViewingsByHouseID(houseID uint) ([]model.Viewing, error) {
 	var viewings []model.Viewing
-	if err := model.GetDB().Where("house_id = ?", houseID).Find(&viewings).Error; err != nil {
+	if err := r.db.Where("house_id = ?", houseID).Find(&viewings).Error; err != nil {
 		return nil, err
 	}
 	return viewings, nil
 }
 
 func (r *viewingRepository) UpdateStatus(id uint, status int) error {
-	return model.GetDB().Model(&model.Viewing{}).Where("id = ?", id).Update("status", status).Error
+	return r.db.Model(&model.Viewing{}).Where("id = ?", id).Update("status", status).Error
 }

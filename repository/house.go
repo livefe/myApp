@@ -2,6 +2,8 @@ package repository
 
 import (
 	"myApp/model"
+
+	"gorm.io/gorm"
 )
 
 type HouseRepository interface {
@@ -14,19 +16,23 @@ type HouseRepository interface {
 	IncrementViewCount(id uint) error
 }
 
-type houseRepository struct{}
+type houseRepository struct {
+	db *gorm.DB
+}
 
 func NewHouseRepository() HouseRepository {
-	return &houseRepository{}
+	return &houseRepository{
+		db: model.GetDB(),
+	}
 }
 
 func (r *houseRepository) Create(house *model.House) error {
-	return model.GetDB().Create(house).Error
+	return r.db.Create(house).Error
 }
 
 func (r *houseRepository) GetByID(id uint) (*model.House, error) {
 	var house model.House
-	if err := model.GetDB().First(&house, id).Error; err != nil {
+	if err := r.db.First(&house, id).Error; err != nil {
 		return nil, err
 	}
 	return &house, nil
@@ -34,7 +40,7 @@ func (r *houseRepository) GetByID(id uint) (*model.House, error) {
 
 func (r *houseRepository) GetAll(params map[string]interface{}) ([]model.House, error) {
 	var houses []model.House
-	db := model.GetDB()
+	db := r.db
 
 	// 根据参数构建查询条件
 	if params != nil {
@@ -84,21 +90,21 @@ func (r *houseRepository) GetAll(params map[string]interface{}) ([]model.House, 
 }
 
 func (r *houseRepository) Update(house *model.House) error {
-	return model.GetDB().Save(house).Error
+	return r.db.Save(house).Error
 }
 
 func (r *houseRepository) Delete(id uint) error {
-	return model.GetDB().Delete(&model.House{}, id).Error
+	return r.db.Delete(&model.House{}, id).Error
 }
 
 func (r *houseRepository) GetHousesByLandlordID(landlordID uint) ([]model.House, error) {
 	var houses []model.House
-	if err := model.GetDB().Where("landlord_id = ?", landlordID).Find(&houses).Error; err != nil {
+	if err := r.db.Where("landlord_id = ?", landlordID).Find(&houses).Error; err != nil {
 		return nil, err
 	}
 	return houses, nil
 }
 
 func (r *houseRepository) IncrementViewCount(id uint) error {
-	return model.GetDB().Model(&model.House{}).Where("id = ?", id).UpdateColumn("view_count", model.GetDB().Raw("view_count + 1")).Error
+	return r.db.Model(&model.House{}).Where("id = ?", id).UpdateColumn("view_count", r.db.Raw("view_count + 1")).Error
 }
