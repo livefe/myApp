@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"myApp/config"
-	"net/http"
+	"myApp/pkg/response"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +18,8 @@ func JWTAuth() gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "无效的访问令牌"})
+			response.Unauthorized(c, "无效的访问令牌")
+			c.Abort()
 			return
 		}
 
@@ -26,7 +27,8 @@ func JWTAuth() gin.HandlerFunc {
 		// 将userID转换为uint类型
 		userIDFloat, ok := claims["userID"].(float64)
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "无效的用户ID"})
+			response.ServerError(c, "无效的用户ID")
+			c.Abort()
 			return
 		}
 		c.Set("userID", uint(userIDFloat))
