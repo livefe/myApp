@@ -1,8 +1,9 @@
 package viewing
 
 import (
-	"time"
 	"myApp/dto/common"
+
+	"time"
 
 	"github.com/go-playground/validator/v10"
 )

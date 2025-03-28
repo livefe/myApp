@@ -2,7 +2,7 @@ package favorite
 
 import (
 	"myApp/dto/common"
-	
+
 	"github.com/go-playground/validator/v10"
 )
 
