@@ -3,6 +3,8 @@ package handler
 import (
 	"strconv"
 
+	"myApp/dto/favorite"
+	"myApp/dto/house"
 	"myApp/model"
 	"myApp/pkg/response"
 	"myApp/service"
@@ -22,9 +24,15 @@ func NewFavoriteHandler(s service.FavoriteService) *FavoriteHandler {
 
 // AddFavorite 添加收藏
 func (h *FavoriteHandler) AddFavorite(c *gin.Context) {
-	var favorite model.Favorite
-	if err := c.ShouldBindJSON(&favorite); err != nil {
+	var req favorite.AddRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "无效的请求参数")
+		return
+	}
+
+	// 验证请求参数
+	if err := favorite.ValidateAddRequest(req); err != nil {
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -34,14 +42,29 @@ func (h *FavoriteHandler) AddFavorite(c *gin.Context) {
 		response.Unauthorized(c, "用户未认证")
 		return
 	}
-	favorite.UserID = userID.(uint)
 
-	if err := h.service.AddFavorite(&favorite); err != nil {
+	// 将DTO转换为模型
+	favoriteModel := model.Favorite{
+		UserID:  userID.(uint),
+		HouseID: req.HouseID,
+		Notes:   req.Notes,
+	}
+
+	if err := h.service.AddFavorite(&favoriteModel); err != nil {
 		response.ServerError(c, "添加收藏失败")
 		return
 	}
 
-	response.Success(c, favorite)
+	// 将模型转换为DTO
+	favoriteDTO := favorite.BasicInfoDTO{
+		ID:        favoriteModel.ID,
+		UserID:    favoriteModel.UserID,
+		HouseID:   favoriteModel.HouseID,
+		Notes:     favoriteModel.Notes,
+		CreatedAt: favoriteModel.CreatedAt,
+	}
+
+	response.Success(c, favoriteDTO)
 }
 
 // RemoveFavorite 删除收藏
@@ -90,13 +113,42 @@ func (h *FavoriteHandler) GetUserFavorites(c *gin.Context) {
 		return
 	}
 
-	favorites, err := h.service.GetUserFavorites(userID.(uint))
+	favoriteModels, err := h.service.GetUserFavorites(userID.(uint))
 	if err != nil {
 		response.ServerError(c, "获取收藏列表失败")
 		return
 	}
 
-	response.Success(c, favorites)
+	// 将模型列表转换为DTO列表
+	favoriteDTOs := make([]favorite.DetailDTO, 0, len(favoriteModels))
+	for _, f := range favoriteModels {
+		// 注意：model.Favorite中没有House字段，需要单独获取房源信息
+		// 这里应该调用房源服务获取房源信息
+		houseDTO := house.BasicInfoDTO{}
+
+		// 这里需要通过房源ID获取房源信息
+		// TODO: 调用房源服务获取房源信息
+		// 示例: houseInfo, err := houseService.GetHouseByID(f.HouseID)
+		// 如果有房源服务，应该注入到FavoriteHandler中
+
+		favoriteDTOs = append(favoriteDTOs, favorite.DetailDTO{
+			ID:        f.ID,
+			UserID:    f.UserID,
+			HouseID:   f.HouseID,
+			Notes:     f.Notes,
+			House:     houseDTO,
+			CreatedAt: f.CreatedAt,
+			UpdatedAt: f.UpdatedAt,
+		})
+	}
+
+	// 创建列表响应DTO
+	listResponse := favorite.ListResponse{
+		Total: len(favoriteDTOs),
+		List:  favoriteDTOs,
+	}
+
+	response.Success(c, listResponse)
 }
 
 // ToggleFavorite 切换收藏状态
@@ -135,7 +187,11 @@ func (h *FavoriteHandler) ToggleFavorite(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, gin.H{"is_favorite": isFav})
+	// 使用DTO返回收藏状态
+	statusDTO := favorite.StatusResponse{
+		IsFavorite: isFav,
+	}
+	response.Success(c, statusDTO)
 }
 
 // CheckFavorite 检查是否已收藏
@@ -160,5 +216,9 @@ func (h *FavoriteHandler) CheckFavorite(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, gin.H{"is_favorite": isFav})
+	// 使用DTO返回收藏状态
+	statusDTO := favorite.StatusResponse{
+		IsFavorite: isFav,
+	}
+	response.Success(c, statusDTO)
 }

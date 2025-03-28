@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"myApp/dto/viewing"
 	"myApp/model"
 	"myApp/pkg/response"
 	"myApp/service"
@@ -13,7 +14,7 @@ import (
 
 // ViewingHandler 预约看房处理器结构体，负责处理预约看房相关的HTTP请求
 type ViewingHandler struct {
-	service     service.ViewingService
+	service      service.ViewingService
 	houseService service.HouseService
 }
 
@@ -24,23 +25,17 @@ func NewViewingHandler(s service.ViewingService, hs service.HouseService) *Viewi
 
 // CreateViewing 创建预约看房
 func (h *ViewingHandler) CreateViewing(c *gin.Context) {
-	// 定义请求结构体，与测试中使用的结构体字段保持一致
-	var req struct {
-		HouseID  uint      `json:"house_id"`
-		ViewDate time.Time `json:"view_date"`
-		Message  string    `json:"message"`
-	}
-
+	// 绑定并验证请求参数
+	var req viewing.CreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "无效的请求参数")
 		return
 	}
 
-	// 创建预约看房模型
-	viewing := model.Viewing{
-		HouseID:     req.HouseID,
-		ViewingTime: req.ViewDate, // 将ViewDate映射到ViewingTime
-		Remark:      req.Message,  // 将Message映射到Remark
+	// 验证请求参数
+	if err := viewing.ValidateCreateRequest(req); err != nil {
+		response.BadRequest(c, err.Error())
+		return
 	}
 
 	// 从上下文获取用户ID（由JWT中间件设置）
@@ -49,21 +44,31 @@ func (h *ViewingHandler) CreateViewing(c *gin.Context) {
 		response.Unauthorized(c, "用户未认证")
 		return
 	}
-	viewing.UserID = userID.(uint)
 
 	// 验证预约时间是否合法（不能是过去的时间）
-	if viewing.ViewingTime.Before(time.Now()) {
+	if req.ViewDate.Before(time.Now()) {
 		response.BadRequest(c, "预约时间不能是过去的时间")
 		return
 	}
 
-	if err := h.service.CreateViewing(&viewing); err != nil {
+	// 将DTO转换为模型
+	viewingModel := model.Viewing{
+		HouseID:      req.HouseID,
+		UserID:       userID.(uint),
+		ViewingTime:  req.ViewDate,
+		Remark:       req.Message,
+		ContactName:  req.ContactName,
+		ContactPhone: req.ContactPhone,
+		Status:       0, // 默认待确认状态
+	}
+
+	if err := h.service.CreateViewing(&viewingModel); err != nil {
 		response.ServerError(c, "创建预约看房失败")
 		return
 	}
 
 	// 返回成功响应，包含预约ID
-	response.Success(c, gin.H{"id": viewing.ID})
+	response.Success(c, gin.H{"id": viewingModel.ID})
 }
 
 // GetViewing 获取预约看房详情
@@ -75,7 +80,7 @@ func (h *ViewingHandler) GetViewing(c *gin.Context) {
 		return
 	}
 
-	viewing, err := h.service.GetViewingByID(uint(id))
+	viewingModel, err := h.service.GetViewingByID(uint(id))
 	if err != nil {
 		response.NotFound(c, "预约记录不存在")
 		return
@@ -89,9 +94,9 @@ func (h *ViewingHandler) GetViewing(c *gin.Context) {
 	}
 
 	// 检查是否为预约用户本人或房东
-	if viewing.UserID != userID.(uint) {
+	if viewingModel.UserID != userID.(uint) {
 		// 获取房源信息，检查当前用户是否为房东
-		house, err := h.houseService.GetHouseByID(viewing.HouseID)
+		house, err := h.houseService.GetHouseByID(viewingModel.HouseID)
 		if err != nil || house.LandlordID != userID.(uint) {
 			response.Forbidden(c, "无权查看该预约记录")
 			return
@@ -100,7 +105,7 @@ func (h *ViewingHandler) GetViewing(c *gin.Context) {
 
 	// 将状态码转换为状态描述
 	statusText := "pending"
-	switch viewing.Status {
+	switch viewingModel.Status {
 	case model.ViewingConfirmed:
 		statusText = "confirmed"
 	case model.ViewingCompleted:
@@ -111,13 +116,13 @@ func (h *ViewingHandler) GetViewing(c *gin.Context) {
 
 	// 构建响应数据
 	responseData := gin.H{
-		"id":           viewing.ID,
-		"house_id":     viewing.HouseID,
-		"user_id":      viewing.UserID,
-		"viewing_time": viewing.ViewingTime,
+		"id":           viewingModel.ID,
+		"house_id":     viewingModel.HouseID,
+		"user_id":      viewingModel.UserID,
+		"viewing_time": viewingModel.ViewingTime,
 		"status":       statusText,
-		"remark":       viewing.Remark,
-		"created_at":   viewing.CreatedAt,
+		"remark":       viewingModel.Remark,
+		"created_at":   viewingModel.CreatedAt,
 	}
 
 	response.Success(c, responseData)
@@ -183,7 +188,7 @@ func (h *ViewingHandler) ConfirmViewing(c *gin.Context) {
 	}
 
 	// 获取预约记录
-	viewing, err := h.service.GetViewingByID(uint(id))
+	viewingModel, err := h.service.GetViewingByID(uint(id))
 	if err != nil {
 		response.NotFound(c, "预约记录不存在")
 		return
@@ -197,7 +202,7 @@ func (h *ViewingHandler) ConfirmViewing(c *gin.Context) {
 	}
 
 	// 检查当前用户是否为房东
-	house, err := h.houseService.GetHouseByID(viewing.HouseID)
+	house, err := h.houseService.GetHouseByID(viewingModel.HouseID)
 	if err != nil || house.LandlordID != userID.(uint) {
 		response.Forbidden(c, "无权确认该预约")
 		return
@@ -222,7 +227,7 @@ func (h *ViewingHandler) CompleteViewing(c *gin.Context) {
 	}
 
 	// 获取预约记录
-	viewing, err := h.service.GetViewingByID(uint(id))
+	viewingModel, err := h.service.GetViewingByID(uint(id))
 	if err != nil {
 		response.NotFound(c, "预约记录不存在")
 		return
@@ -236,7 +241,7 @@ func (h *ViewingHandler) CompleteViewing(c *gin.Context) {
 	}
 
 	// 检查当前用户是否为房东
-	house, err := h.houseService.GetHouseByID(viewing.HouseID)
+	house, err := h.houseService.GetHouseByID(viewingModel.HouseID)
 	if err != nil || house.LandlordID != userID.(uint) {
 		response.Forbidden(c, "无权完成该预约")
 		return
@@ -261,7 +266,7 @@ func (h *ViewingHandler) CancelViewing(c *gin.Context) {
 	}
 
 	// 获取预约记录
-	viewing, err := h.service.GetViewingByID(uint(id))
+	viewingModel, err := h.service.GetViewingByID(uint(id))
 	if err != nil {
 		response.NotFound(c, "预约记录不存在")
 		return
@@ -276,12 +281,12 @@ func (h *ViewingHandler) CancelViewing(c *gin.Context) {
 
 	// 检查当前用户是否为预约用户本人或房东
 	isLandlord := false
-	house, err := h.houseService.GetHouseByID(viewing.HouseID)
+	house, err := h.houseService.GetHouseByID(viewingModel.HouseID)
 	if err == nil && house.LandlordID == userID.(uint) {
 		isLandlord = true
 	}
 
-	if viewing.UserID != userID.(uint) && !isLandlord {
+	if viewingModel.UserID != userID.(uint) && !isLandlord {
 		response.Forbidden(c, "无权取消该预约")
 		return
 	}

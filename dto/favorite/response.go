@@ -30,3 +30,8 @@ type ListResponse struct {
 	Total int         `json:"total"` // 总数
 	List  []DetailDTO `json:"list"`  // 列表
 }
+
+// 收藏状态响应DTO
+type StatusResponse struct {
+	IsFavorite bool `json:"is_favorite"` // 是否已收藏
+}

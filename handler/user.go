@@ -2,6 +2,7 @@ package handler
 
 import (
 	"myApp/config"
+	"myApp/dto/user"
 	"myApp/model"
 	"myApp/pkg/response"
 	"myApp/service"
@@ -24,38 +25,68 @@ func NewUserHandler(s service.UserService) *UserHandler {
 // Register 用户注册处理函数
 func (h *UserHandler) Register(c *gin.Context) {
 	// 绑定并验证请求参数
-	var user model.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var req user.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "无效的请求参数")
 		return
 	}
 
+	// 验证请求参数
+	if err := user.ValidateRegisterRequest(req); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	// 将DTO转换为模型
+	userModel := model.User{
+		Username: req.Username,
+		Password: req.Password,
+		Phone:    req.Phone,
+		Email:    req.Email,
+		RealName: req.RealName,
+		IdCard:   req.IdCard,
+		Avatar:   req.Avatar,
+	}
+
 	// 调用服务层进行用户注册
-	createdUser, err := h.service.Register(&user)
+	createdUser, err := h.service.Register(&userModel)
 	if err != nil {
 		response.ServerError(c, err.Error())
 		return
 	}
 
+	// 将模型转换为DTO
+	userDTO := user.DetailDTO{
+		ID:        createdUser.ID,
+		Username:  createdUser.Username,
+		Phone:     createdUser.Phone,
+		Email:     createdUser.Email,
+		RealName:  createdUser.RealName,
+		Avatar:    createdUser.Avatar,
+		CreatedAt: createdUser.CreatedAt,
+	}
+
 	// 返回成功响应
-	response.Success(c, createdUser)
+	response.Success(c, userDTO)
 }
 
 // Login 用户登录处理函数
 func (h *UserHandler) Login(c *gin.Context) {
 	// 绑定并验证登录凭证
-	var credentials struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
-	if err := c.ShouldBindJSON(&credentials); err != nil {
+	var req user.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "无效的请求参数")
 		return
 	}
 
+	// 验证请求参数
+	if err := user.ValidateLoginRequest(req); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
 	// 调用服务层进行用户登录验证
-	user, err := h.service.Login(credentials.Username, credentials.Password)
+	userModel, err := h.service.Login(req.Username, req.Password)
 	if err != nil {
 		response.Unauthorized(c, "无效的凭证")
 		return
@@ -63,7 +94,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	// 生成JWT令牌
 	claims := jwt.MapClaims{
-		"userID": user.ID,
+		"userID": userModel.ID,
 		"exp":    time.Now().Add(time.Duration(config.Conf.JWT.Expire) * time.Second).Unix(),
 	}
 
@@ -74,8 +105,26 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// 返回成功响应，包含令牌和用户信息
-	response.SuccessWithToken(c, tokenString, user)
+	// 将模型转换为DTO
+	userDTO := user.DetailDTO{
+		ID:        userModel.ID,
+		Username:  userModel.Username,
+		Phone:     userModel.Phone,
+		Email:     userModel.Email,
+		RealName:  userModel.RealName,
+		Avatar:    userModel.Avatar,
+		CreatedAt: userModel.CreatedAt,
+	}
+
+	// 创建登录响应DTO
+	loginResponse := user.LoginResponse{
+		Token:     tokenString,
+		ExpiresAt: time.Now().Add(time.Duration(config.Conf.JWT.Expire) * time.Second),
+		User:      userDTO,
+	}
+
+	// 返回成功响应
+	response.Success(c, loginResponse)
 }
 
 // GetUserInfo 获取用户信息处理函数
@@ -88,12 +137,23 @@ func (h *UserHandler) GetUserInfo(c *gin.Context) {
 	}
 
 	// 调用服务层获取用户信息
-	user, err := h.service.GetUserProfile(userID.(uint))
+	userModel, err := h.service.GetUserProfile(userID.(uint))
 	if err != nil {
 		response.NotFound(c, "用户不存在")
 		return
 	}
 
+	// 将模型转换为DTO
+	userDTO := user.DetailDTO{
+		ID:        userModel.ID,
+		Username:  userModel.Username,
+		Phone:     userModel.Phone,
+		Email:     userModel.Email,
+		RealName:  userModel.RealName,
+		Avatar:    userModel.Avatar,
+		CreatedAt: userModel.CreatedAt,
+	}
+
 	// 返回成功响应
-	response.Success(c, user)
+	response.Success(c, userDTO)
 }

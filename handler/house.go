@@ -3,6 +3,7 @@ package handler
 import (
 	"strconv"
 
+	"myApp/dto/house"
 	"myApp/model"
 	"myApp/pkg/response"
 	"myApp/service"
@@ -22,9 +23,15 @@ func NewHouseHandler(s service.HouseService) *HouseHandler {
 
 // CreateHouse 创建房源
 func (h *HouseHandler) CreateHouse(c *gin.Context) {
-	var house model.House
-	if err := c.ShouldBindJSON(&house); err != nil {
+	var req house.CreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "无效的请求参数")
+		return
+	}
+
+	// 验证请求参数
+	if err := house.ValidateCreateRequest(req); err != nil {
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -34,14 +41,69 @@ func (h *HouseHandler) CreateHouse(c *gin.Context) {
 		response.Unauthorized(c, "用户未认证")
 		return
 	}
-	house.LandlordID = userID.(uint)
 
-	if err := h.service.CreateHouse(&house); err != nil {
+	// 将DTO转换为模型
+	houseModel := model.House{
+		Title:       req.Title,
+		Description: req.Description,
+		Address:     req.Address,
+		Area:        req.Area,
+		Floor:       req.Floor,
+		TotalFloor:  req.TotalFloor,
+		Rooms:       req.Rooms,
+		Halls:       req.Halls,
+		Bathrooms:   req.Bathrooms,
+		RentPrice:   req.RentPrice,
+		Deposit:     req.Deposit,
+		PaymentType: req.PaymentType,
+		HouseType:   req.HouseType,
+		Orientation: req.Orientation,
+		Decoration:  req.Decoration,
+		Facilities:  req.Facilities,
+		Images:      req.Images,
+		Latitude:    req.Latitude,
+		Longitude:   req.Longitude,
+		IsElevator:  req.IsElevator,
+		LandlordID:  userID.(uint),
+		Status:      1, // 默认上架状态
+	}
+
+	if err := h.service.CreateHouse(&houseModel); err != nil {
 		response.ServerError(c, "创建房源失败")
 		return
 	}
 
-	response.Success(c, house)
+	// 将模型转换为DTO
+	houseDTO := house.DetailDTO{
+		ID:          houseModel.ID,
+		Title:       houseModel.Title,
+		Description: houseModel.Description,
+		Address:     houseModel.Address,
+		Area:        houseModel.Area,
+		Floor:       houseModel.Floor,
+		TotalFloor:  houseModel.TotalFloor,
+		Rooms:       houseModel.Rooms,
+		Halls:       houseModel.Halls,
+		Bathrooms:   houseModel.Bathrooms,
+		RentPrice:   houseModel.RentPrice,
+		Deposit:     houseModel.Deposit,
+		PaymentType: houseModel.PaymentType,
+		HouseType:   houseModel.HouseType,
+		Orientation: houseModel.Orientation,
+		Decoration:  houseModel.Decoration,
+		Facilities:  houseModel.Facilities,
+		Images:      houseModel.Images,
+		Latitude:    houseModel.Latitude,
+		Longitude:   houseModel.Longitude,
+		IsElevator:  houseModel.IsElevator,
+		Status:      houseModel.Status,
+		LandlordID:  houseModel.LandlordID,
+		ViewCount:   houseModel.ViewCount,
+		CreatedAt:   houseModel.CreatedAt,
+		UpdatedAt:   houseModel.UpdatedAt,
+	}
+
+	response.Success(c, houseDTO)
 }
 
 // GetHouse 获取房源详情
@@ -56,13 +118,43 @@ func (h *HouseHandler) GetHouse(c *gin.Context) {
 	// 增加浏览次数
 	h.service.IncrementViewCount(uint(id))
 
-	house, err := h.service.GetHouseByID(uint(id))
+	houseModel, err := h.service.GetHouseByID(uint(id))
 	if err != nil {
 		response.NotFound(c, "房源不存在")
 		return
 	}
 
-	response.Success(c, house)
+	// 将模型转换为DTO
+	houseDTO := house.DetailDTO{
+		ID:          houseModel.ID,
+		Title:       houseModel.Title,
+		Description: houseModel.Description,
+		Address:     houseModel.Address,
+		Area:        houseModel.Area,
+		Floor:       houseModel.Floor,
+		TotalFloor:  houseModel.TotalFloor,
+		Rooms:       houseModel.Rooms,
+		Halls:       houseModel.Halls,
+		Bathrooms:   houseModel.Bathrooms,
+		RentPrice:   houseModel.RentPrice,
+		Deposit:     houseModel.Deposit,
+		PaymentType: houseModel.PaymentType,
+		HouseType:   houseModel.HouseType,
+		Orientation: houseModel.Orientation,
+		Decoration:  houseModel.Decoration,
+		Facilities:  houseModel.Facilities,
+		Images:      houseModel.Images,
+		Latitude:    houseModel.Latitude,
+		Longitude:   houseModel.Longitude,
+		IsElevator:  houseModel.IsElevator,
+		Status:      houseModel.Status,
+		LandlordID:  houseModel.LandlordID,
+		ViewCount:   houseModel.ViewCount,
+		CreatedAt:   houseModel.CreatedAt,
+		UpdatedAt:   houseModel.UpdatedAt,
+	}
+
+	response.Success(c, houseDTO)
 }
 
 // GetAllHouses 获取房源列表

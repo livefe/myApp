@@ -3,6 +3,7 @@ package handler
 import (
 	"strconv"
 
+	"myApp/dto/landlord"
 	"myApp/model"
 	"myApp/pkg/response"
 	"myApp/service"
@@ -22,9 +23,15 @@ func NewLandlordHandler(s service.LandlordService) *LandlordHandler {
 
 // CreateLandlord 创建房东信息
 func (h *LandlordHandler) CreateLandlord(c *gin.Context) {
-	var landlord model.Landlord
-	if err := c.ShouldBindJSON(&landlord); err != nil {
+	var req landlord.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "无效的请求参数")
+		return
+	}
+
+	// 验证请求参数
+	if err := landlord.ValidateRegisterRequest(req); err != nil {
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -34,14 +41,48 @@ func (h *LandlordHandler) CreateLandlord(c *gin.Context) {
 		response.Unauthorized(c, "用户未认证")
 		return
 	}
-	landlord.UserID = userID.(uint)
 
-	if err := h.service.CreateLandlord(&landlord); err != nil {
+	// 将DTO转换为模型
+	landlordModel := model.Landlord{
+		UserID:       userID.(uint),
+		RealName:     req.RealName,
+		IDNumber:     req.IDNumber,
+		PhoneNumber:  req.PhoneNumber,
+		Address:      req.Address,
+		IdCardFront:  req.IdCardFront,
+		IdCardBack:   req.IdCardBack,
+		BankAccount:  req.BankAccount,
+		BankName:     req.BankName,
+		AccountName:  req.AccountName,
+		Introduction: req.Introduction,
+		Verified:     false, // 默认未认证
+	}
+
+	if err := h.service.CreateLandlord(&landlordModel); err != nil {
 		response.ServerError(c, err.Error())
 		return
 	}
 
-	response.Success(c, landlord)
+	// 将模型转换为DTO
+	landlordDTO := landlord.DetailDTO{
+		ID:           landlordModel.ID,
+		UserID:       landlordModel.UserID,
+		RealName:     landlordModel.RealName,
+		IDNumber:     landlordModel.IDNumber,
+		PhoneNumber:  landlordModel.PhoneNumber,
+		Address:      landlordModel.Address,
+		Verified:     landlordModel.Verified,
+		IdCardFront:  landlordModel.IdCardFront,
+		IdCardBack:   landlordModel.IdCardBack,
+		BankAccount:  landlordModel.BankAccount,
+		BankName:     landlordModel.BankName,
+		AccountName:  landlordModel.AccountName,
+		Introduction: landlordModel.Introduction,
+		Rating:       landlordModel.Rating,
+		CreatedAt:    landlordModel.CreatedAt,
+	}
+
+	response.Success(c, landlordDTO)
 }
 
 // GetLandlordProfile 获取房东个人资料
