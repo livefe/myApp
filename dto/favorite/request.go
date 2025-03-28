@@ -1,6 +1,8 @@
 package favorite
 
 import (
+	"myApp/dto/common"
+	
 	"github.com/go-playground/validator/v10"
 )
 
@@ -12,13 +14,10 @@ type AddRequest struct {
 
 // 收藏查询请求DTO
 type QueryRequest struct {
-	UserID    uint   `json:"user_id" form:"user_id" example:"1"`          // 用户ID
-	HouseID   uint   `json:"house_id" form:"house_id" example:"1"`        // 房源ID
-	Keyword   string `json:"keyword" form:"keyword" example:"采光好"`        // 关键词（搜索备注）
-	Page      int    `json:"page" form:"page" example:"1"`                // 页码
-	PageSize  int    `json:"page_size" form:"page_size" example:"10"`     // 每页数量
-	SortBy    string `json:"sort_by" form:"sort_by" example:"created_at"` // 排序字段
-	SortOrder string `json:"sort_order" form:"sort_order" example:"desc"` // 排序方向
+	UserID                       uint   `json:"user_id" form:"user_id" example:"1"`   // 用户ID
+	HouseID                      uint   `json:"house_id" form:"house_id" example:"1"` // 房源ID
+	Keyword                      string `json:"keyword" form:"keyword" example:"采光好"` // 关键词（搜索备注）
+	common.PaginationSortRequest        // 分页和排序参数
 }
 
 // ValidateAddRequest 验证添加收藏请求

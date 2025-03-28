@@ -2,6 +2,7 @@ package viewing
 
 import (
 	"time"
+	"myApp/dto/common"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -23,15 +24,12 @@ type UpdateStatusRequest struct {
 
 // 预约看房查询请求DTO
 type QueryRequest struct {
-	UserID    uint      `json:"user_id" form:"user_id" example:"1"`                          // 用户ID
-	HouseID   uint      `json:"house_id" form:"house_id" example:"1"`                        // 房源ID
-	Status    int       `json:"status" form:"status" example:"0"`                            // 状态
-	StartDate time.Time `json:"start_date" form:"start_date" example:"2023-07-01T00:00:00Z"` // 开始日期
-	EndDate   time.Time `json:"end_date" form:"end_date" example:"2023-07-31T23:59:59Z"`     // 结束日期
-	Page      int       `json:"page" form:"page" example:"1"`                                // 页码
-	PageSize  int       `json:"page_size" form:"page_size" example:"10"`                     // 每页数量
-	SortBy    string    `json:"sort_by" form:"sort_by" example:"viewing_time"`               // 排序字段
-	SortOrder string    `json:"sort_order" form:"sort_order" example:"desc"`                 // 排序方向
+	UserID                       uint      `json:"user_id" form:"user_id" example:"1"`                          // 用户ID
+	HouseID                      uint      `json:"house_id" form:"house_id" example:"1"`                        // 房源ID
+	Status                       int       `json:"status" form:"status" example:"0"`                            // 状态
+	StartDate                    time.Time `json:"start_date" form:"start_date" example:"2023-07-01T00:00:00Z"` // 开始日期
+	EndDate                      time.Time `json:"end_date" form:"end_date" example:"2023-07-31T23:59:59Z"`     // 结束日期
+	common.PaginationSortRequest           // 分页和排序参数
 }
 
 // ValidateCreateRequest 验证创建预约看房请求

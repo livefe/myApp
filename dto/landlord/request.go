@@ -1,6 +1,8 @@
 package landlord
 
 import (
+	"myApp/dto/common"
+	
 	"github.com/go-playground/validator/v10"
 )
 
@@ -35,14 +37,11 @@ type UpdateRequest struct {
 
 // 房东查询请求DTO
 type QueryRequest struct {
-	Keyword   string  `json:"keyword" form:"keyword" example:"张三"`         // 关键词
-	Verified  bool    `json:"verified" form:"verified" example:"true"`     // 是否已认证
-	MinRating float64 `json:"min_rating" form:"min_rating" example:"4.5"`  // 最低评分
-	UserID    uint    `json:"user_id" form:"user_id" example:"1"`          // 关联的用户ID
-	Page      int     `json:"page" form:"page" example:"1"`                // 页码
-	PageSize  int     `json:"page_size" form:"page_size" example:"10"`     // 每页数量
-	SortBy    string  `json:"sort_by" form:"sort_by" example:"created_at"` // 排序字段
-	SortOrder string  `json:"sort_order" form:"sort_order" example:"desc"` // 排序方向
+	Keyword                      string  `json:"keyword" form:"keyword" example:"张三"`        // 关键词
+	Verified                     bool    `json:"verified" form:"verified" example:"true"`    // 是否已认证
+	MinRating                    float64 `json:"min_rating" form:"min_rating" example:"4.5"` // 最低评分
+	UserID                       uint    `json:"user_id" form:"user_id" example:"1"`         // 关联的用户ID
+	common.PaginationSortRequest         // 分页和排序参数
 }
 
 // ValidateRegisterRequest 验证房东注册请求

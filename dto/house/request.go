@@ -1,6 +1,8 @@
 package house
 
 import (
+	"myApp/dto/common"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -55,22 +57,20 @@ type UpdateRequest struct {
 
 // 房源查询请求DTO
 type QueryRequest struct {
-	Keyword     string  `json:"keyword" form:"keyword" example:"精装修"`          // 关键词
-	Status      int     `json:"status" form:"status" example:"1"`              // 状态：0-下架，1-上架
-	LandlordID  uint    `json:"landlord_id" form:"landlord_id" example:"1"`    // 房东ID
-	MinPrice    float64 `json:"min_price" form:"min_price" example:"3000"`     // 最低价格
-	MaxPrice    float64 `json:"max_price" form:"max_price" example:"6000"`     // 最高价格
-	MinArea     float64 `json:"min_area" form:"min_area" example:"60"`         // 最小面积
-	MaxArea     float64 `json:"max_area" form:"max_area" example:"100"`        // 最大面积
-	Rooms       int     `json:"rooms" form:"rooms" example:"2"`                // 房间数
-	HouseType   int     `json:"house_type" form:"house_type" example:"1"`      // 房屋类型
-	Decoration  int     `json:"decoration" form:"decoration" example:"2"`      // 装修情况
-	IsElevator  bool    `json:"is_elevator" form:"is_elevator" example:"true"` // 是否有电梯
-	PaymentType int     `json:"payment_type" form:"payment_type" example:"1"`  // 支付方式
-	Page        int     `json:"page" form:"page" example:"1"`                  // 页码
-	PageSize    int     `json:"page_size" form:"page_size" example:"10"`       // 每页数量
-	SortBy      string  `json:"sort_by" form:"sort_by" example:"rent_price"`   // 排序字段
-	SortOrder   string  `json:"sort_order" form:"sort_order" example:"asc"`    // 排序方向
+	Keyword                      string  `json:"keyword" form:"keyword" example:"精装修"`          // 关键词
+	Status                       int     `json:"status" form:"status" example:"1"`              // 状态：0-下架，1-上架
+	LandlordID                   uint    `json:"landlord_id" form:"landlord_id" example:"1"`    // 房东ID
+	MinPrice                     float64 `json:"min_price" form:"min_price" example:"3000"`     // 最低价格
+	MaxPrice                     float64 `json:"max_price" form:"max_price" example:"6000"`     // 最高价格
+	MinArea                      float64 `json:"min_area" form:"min_area" example:"60"`         // 最小面积
+	MaxArea                      float64 `json:"max_area" form:"max_area" example:"100"`        // 最大面积
+	Rooms                        int     `json:"rooms" form:"rooms" example:"2"`                // 房间数
+	HouseType                    int     `json:"house_type" form:"house_type" example:"1"`      // 房屋类型
+	Decoration                   int     `json:"decoration" form:"decoration" example:"2"`      // 装修情况
+	IsElevator                   bool    `json:"is_elevator" form:"is_elevator" example:"true"` // 是否有电梯
+	Orientation                  string  `json:"orientation" form:"orientation" example:"南"`    // 朝向
+	PaymentType                  int     `json:"payment_type" form:"payment_type" example:"1"`  // 支付方式
+	common.PaginationSortRequest         // 分页和排序参数
 }
 
 // ValidateCreateRequest 验证创建房源请求
