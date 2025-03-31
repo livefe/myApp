@@ -103,29 +103,24 @@ func (h *ViewingHandler) GetViewing(c *gin.Context) {
 		}
 	}
 
-	// 将状态码转换为状态描述
-	statusText := "pending"
-	switch viewingModel.Status {
-	case model.ViewingConfirmed:
-		statusText = "confirmed"
-	case model.ViewingCompleted:
-		statusText = "completed"
-	case model.ViewingCancelled:
-		statusText = "cancelled"
+	// 使用DTO响应结构体构建响应数据
+	viewingResp := viewing.ViewingResponse{
+		ID:           viewingModel.ID,
+		HouseID:      viewingModel.HouseID,
+		UserID:       viewingModel.UserID,
+		ViewingTime:  viewingModel.ViewingTime,
+		Status:       viewingModel.Status,
+		StatusText:   viewing.GetStatusText(viewingModel.Status),
+		Remark:       viewingModel.Remark,
+		ContactName:  viewingModel.ContactName,
+		ContactPhone: viewingModel.ContactPhone,
+		ConfirmTime:  viewingModel.ConfirmTime,
+		CancelTime:   viewingModel.CancelTime,
+		CancelReason: viewingModel.CancelReason,
+		CreatedAt:    viewingModel.CreatedAt,
 	}
 
-	// 构建响应数据
-	responseData := gin.H{
-		"id":           viewingModel.ID,
-		"house_id":     viewingModel.HouseID,
-		"user_id":      viewingModel.UserID,
-		"viewing_time": viewingModel.ViewingTime,
-		"status":       statusText,
-		"remark":       viewingModel.Remark,
-		"created_at":   viewingModel.CreatedAt,
-	}
-
-	response.Success(c, responseData)
+	response.Success(c, viewingResp)
 }
 
 // GetUserViewings 获取用户的所有预约看房记录
@@ -143,7 +138,27 @@ func (h *ViewingHandler) GetUserViewings(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, gin.H{"viewings": viewings})
+	// 转换为响应DTO
+	viewingResps := make([]viewing.ViewingResponse, 0, len(viewings))
+	for _, v := range viewings {
+		viewingResps = append(viewingResps, viewing.ViewingResponse{
+			ID:           v.ID,
+			HouseID:      v.HouseID,
+			UserID:       v.UserID,
+			ViewingTime:  v.ViewingTime,
+			Status:       v.Status,
+			StatusText:   viewing.GetStatusText(v.Status),
+			Remark:       v.Remark,
+			ContactName:  v.ContactName,
+			ContactPhone: v.ContactPhone,
+			ConfirmTime:  v.ConfirmTime,
+			CancelTime:   v.CancelTime,
+			CancelReason: v.CancelReason,
+			CreatedAt:    v.CreatedAt,
+		})
+	}
+
+	response.Success(c, gin.H{"viewings": viewingResps})
 }
 
 // GetHouseViewings 获取房源的所有预约看房记录
@@ -175,7 +190,27 @@ func (h *ViewingHandler) GetHouseViewings(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, gin.H{"viewings": viewings})
+	// 转换为响应DTO
+	viewingResps := make([]viewing.ViewingResponse, 0, len(viewings))
+	for _, v := range viewings {
+		viewingResps = append(viewingResps, viewing.ViewingResponse{
+			ID:           v.ID,
+			HouseID:      v.HouseID,
+			UserID:       v.UserID,
+			ViewingTime:  v.ViewingTime,
+			Status:       v.Status,
+			StatusText:   viewing.GetStatusText(v.Status),
+			Remark:       v.Remark,
+			ContactName:  v.ContactName,
+			ContactPhone: v.ContactPhone,
+			ConfirmTime:  v.ConfirmTime,
+			CancelTime:   v.CancelTime,
+			CancelReason: v.CancelReason,
+			CreatedAt:    v.CreatedAt,
+		})
+	}
+
+	response.Success(c, gin.H{"viewings": viewingResps})
 }
 
 // ConfirmViewing 确认预约看房

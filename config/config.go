@@ -13,6 +13,7 @@ type Config struct {
 	Redis    RedisConfig    `mapstructure:"redis"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Server   ServerConfig   `mapstructure:"server"`
+	SMS      SMSConfig      `mapstructure:"sms"`
 }
 
 // DatabaseConfig 数据库相关配置
@@ -39,6 +40,20 @@ type JWTConfig struct {
 type ServerConfig struct {
 	Port int    `mapstructure:"port"`
 	Mode string `mapstructure:"mode"` // 运行模式：debug或release
+}
+
+// SMSConfig 短信服务配置
+type SMSConfig struct {
+	Provider string          `mapstructure:"provider"` // 短信服务提供商，如aliyun
+	Aliyun   AliyunSMSConfig `mapstructure:"aliyun"`   // 阿里云短信配置
+}
+
+// AliyunSMSConfig 阿里云短信配置
+type AliyunSMSConfig struct {
+	AccessKeyID     string `mapstructure:"access_key_id"`     // 阿里云AccessKey ID
+	AccessKeySecret string `mapstructure:"access_key_secret"` // 阿里云AccessKey Secret
+	RegionID        string `mapstructure:"region_id"`         // 地域ID
+	SignName        string `mapstructure:"sign_name"`         // 短信签名
 }
 
 var Conf *Config
