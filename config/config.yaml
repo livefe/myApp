@@ -29,3 +29,4 @@ sms:
     access_key_secret: "your-access-key-secret" # 阿里云AccessKey Secret
     region_id: "cn-hangzhou"                   # 地域ID
     sign_name: "your-sign-name"                # 短信签名
+    template_code: "SMS_315625116"             # 短信模板ID

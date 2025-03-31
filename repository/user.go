@@ -10,6 +10,7 @@ type UserRepository interface {
 	Create(user *model.User) error
 	FindByUsername(username string) (*model.User, error)
 	FindByID(id uint) (*model.User, error)
+	FindByPhone(phone string) ([]*model.User, error)
 	Update(user *model.User) error
 }
 
@@ -45,4 +46,12 @@ func (r *userRepository) FindByID(id uint) (*model.User, error) {
 
 func (r *userRepository) Update(user *model.User) error {
 	return r.db.Save(user).Error
+}
+
+func (r *userRepository) FindByPhone(phone string) ([]*model.User, error) {
+	var users []*model.User
+	if err := r.db.Where("phone = ?", phone).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
 }
