@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"myApp/config"
 	"myApp/model"
 	"myApp/pkg/redis"
 	"myApp/pkg/sms"
@@ -22,20 +21,22 @@ const (
 
 // SMSCodeService 短信验证码服务接口
 type SMSCodeService interface {
-	SendCode(phone string) (bool, error)                 // 发送验证码
-	VerifyCode(phone, code string) (bool, error)         // 验证验证码
-	LoginByCode(phone, code string) (*model.User, error) // 通过验证码登录
+	SendCode(phone string, ipAddress, userAgent string) (bool, error) // 发送验证码
+	VerifyCode(phone, code string) (bool, error)                      // 验证验证码
+	LoginByCode(phone, code string) (*model.User, error)              // 通过验证码登录
 }
 
 // smsCodeService 短信验证码服务实现
 type smsCodeService struct {
-	userRepo repository.UserRepository
+	userRepo      repository.UserRepository
+	smsRecordRepo repository.SMSRecordRepository
 }
 
 // NewSMSCodeService 创建短信验证码服务实例
-func NewSMSCodeService(userRepo repository.UserRepository) SMSCodeService {
+func NewSMSCodeService(userRepo repository.UserRepository, smsRecordRepo repository.SMSRecordRepository) SMSCodeService {
 	return &smsCodeService{
-		userRepo: userRepo,
+		userRepo:      userRepo,
+		smsRecordRepo: smsRecordRepo,
 	}
 }
 
@@ -54,7 +55,7 @@ func (s *smsCodeService) generateCode() string {
 }
 
 // SendCode 发送短信验证码
-func (s *smsCodeService) SendCode(phone string) (bool, error) {
+func (s *smsCodeService) SendCode(phone string, ipAddress, userAgent string) (bool, error) {
 	if phone == "" {
 		return false, errors.New("手机号不能为空")
 	}
@@ -79,16 +80,38 @@ func (s *smsCodeService) SendCode(phone string) (bool, error) {
 	templateParam := fmt.Sprintf(`{"code":"%s"}`, code)
 
 	// 发送短信
-	success, err := provider.SendSMS(
+	success, bizId, requestId, err := provider.SendSMS(
 		[]string{phone},
-		config.Conf.SMS.Aliyun.SignName,
-		config.Conf.SMS.Aliyun.TemplateCode,
+		provider.GetSignName(),
+		provider.GetTemplateCode(),
 		templateParam,
 	)
 
+	// 创建短信记录
+	smsRecord := &model.SMSRecord{
+		Phone:      phone,
+		Code:       code,
+		TemplateID: provider.GetTemplateCode(),
+		Content:    templateParam,
+		Status:     success,
+		Provider:   provider.GetName(),
+		IPAddress:  ipAddress,
+		UserAgent:  userAgent,
+		BizId:      bizId,
+		RequestId:  requestId,
+	}
+
+	// 如果发送失败，记录失败原因
 	if err != nil {
+		smsRecord.Status = false
+		smsRecord.FailReason = err.Error()
+		// 记录短信发送失败日志，但不影响主流程返回
+		_ = s.smsRecordRepo.Create(smsRecord)
 		return false, fmt.Errorf("发送短信失败: %v", err)
 	}
+
+	// 记录短信发送成功日志
+	_ = s.smsRecordRepo.Create(smsRecord)
 
 	return success, nil
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"myApp/config"
 
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	dysmsapi "github.com/alibabacloud-go/dysmsapi-20170525/v4/client"
@@ -70,9 +71,9 @@ func createAliyunClient(config *AliyunSMSConfig) (*dysmsapi.Client, error) {
 }
 
 // SendSMS 发送短信
-func (p *AliyunSMSProvider) SendSMS(phoneNumbers []string, signName, templateCode, templateParam string) (bool, error) {
+func (p *AliyunSMSProvider) SendSMS(phoneNumbers []string, signName, templateCode, templateParam string) (bool, string, string, error) {
 	if len(phoneNumbers) == 0 {
-		return false, errors.New("手机号码列表不能为空")
+		return false, "", "", errors.New("手机号码列表不能为空")
 	}
 
 	// 将手机号码列表转换为逗号分隔的字符串
@@ -95,15 +96,25 @@ func (p *AliyunSMSProvider) SendSMS(phoneNumbers []string, signName, templateCod
 	// 发送短信
 	response, err := p.Client.SendSms(sendSmsRequest)
 	if err != nil {
-		return false, fmt.Errorf("发送短信失败: %v", err)
+		return false, "", "", fmt.Errorf("发送短信失败: %v", err)
 	}
 
 	// 检查发送结果
 	if *response.Body.Code != "OK" {
-		return false, fmt.Errorf("发送短信失败: %s, %s", *response.Body.Code, *response.Body.Message)
+		return false, "", "", fmt.Errorf("发送短信失败: %s, %s", *response.Body.Code, *response.Body.Message)
 	}
 
-	return true, nil
+	// 获取BizId和RequestId
+	bizId := ""
+	requestId := ""
+	if response.Body.BizId != nil {
+		bizId = *response.Body.BizId
+	}
+	if response.Body.RequestId != nil {
+		requestId = *response.Body.RequestId
+	}
+
+	return true, bizId, requestId, nil
 }
 
 // QuerySMSStatus 查询短信发送状态
@@ -154,4 +165,14 @@ func (p *AliyunSMSProvider) QuerySMSStatus(phoneNumber, bizId string) (map[strin
 // GetName 获取短信服务提供商名称
 func (p *AliyunSMSProvider) GetName() string {
 	return "Aliyun"
+}
+
+// GetSignName 获取短信签名
+func (p *AliyunSMSProvider) GetSignName() string {
+	return config.Conf.SMS.Aliyun.SignName
+}
+
+// GetTemplateCode 获取短信模板ID
+func (p *AliyunSMSProvider) GetTemplateCode() string {
+	return config.Conf.SMS.Aliyun.TemplateCode
 }

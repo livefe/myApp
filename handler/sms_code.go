@@ -4,6 +4,7 @@ import (
 	"myApp/config"
 	"myApp/dto/user"
 	"myApp/pkg/response"
+	"myApp/repository"
 	"myApp/service"
 	"time"
 
@@ -17,8 +18,11 @@ type SMSCodeHandler struct {
 }
 
 // NewSMSCodeHandler 创建短信验证码处理器实例
-func NewSMSCodeHandler(s service.SMSCodeService) *SMSCodeHandler {
-	return &SMSCodeHandler{smsCodeService: s}
+func NewSMSCodeHandler() *SMSCodeHandler {
+	userRepo := repository.NewUserRepository()
+	smsRecordRepo := repository.NewSMSRecordRepository()
+	smsCodeService := service.NewSMSCodeService(userRepo, smsRecordRepo)
+	return &SMSCodeHandler{smsCodeService: smsCodeService}
 }
 
 // SendCode 发送短信验证码处理函数
@@ -36,8 +40,12 @@ func (h *SMSCodeHandler) SendCode(c *gin.Context) {
 		return
 	}
 
+	// 获取客户端IP地址和用户代理
+	ipAddress := c.ClientIP()
+	userAgent := c.GetHeader("User-Agent")
+
 	// 调用服务层发送验证码
-	success, err := h.smsCodeService.SendCode(req.Phone)
+	success, err := h.smsCodeService.SendCode(req.Phone, ipAddress, userAgent)
 	if err != nil {
 		response.ServerError(c, err.Error())
 		return

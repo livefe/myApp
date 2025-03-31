@@ -23,6 +23,7 @@ func main() {
 		&model.Favorite{},
 		&model.Viewing{},
 		&model.Landlord{},
+		&model.SMSRecord{},
 	)
 
 	if err != nil {

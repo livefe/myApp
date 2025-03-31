@@ -18,10 +18,8 @@ func InitUserRouter(r *gin.Engine) {
 	// 创建用户处理器实例，注入服务依赖
 	userHandler := handler.NewUserHandler(userService)
 
-	// 创建短信验证码服务实例
-	smsCodeService := service.NewSMSCodeService(userRepo)
 	// 创建短信验证码处理器实例
-	smsCodeHandler := handler.NewSMSCodeHandler(smsCodeService)
+	smsCodeHandler := handler.NewSMSCodeHandler()
 
 	// 创建用户路由组，所有用户相关接口都在/api/user路径下
 	userGroup := r.Group("/api/user")

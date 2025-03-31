@@ -57,7 +57,7 @@ func (s *SMSService) SendSMS(phoneNumbers []string, templateCode string, templat
 	}
 
 	// 发送短信
-	success, err := s.Provider.SendSMS(phoneNumbers, signName, templateCode, templateParamStr)
+	success, bizId, requestId, err := s.Provider.SendSMS(phoneNumbers, signName, templateCode, templateParamStr)
 	if err != nil {
 		return &sms.SMSResponse{
 			Success: false,
@@ -69,7 +69,7 @@ func (s *SMSService) SendSMS(phoneNumbers []string, templateCode string, templat
 	return &sms.SMSResponse{
 		Success: success,
 		Message: "短信发送成功",
-		Data:    map[string]interface{}{"provider": s.Provider.GetName()},
+		Data:    map[string]interface{}{"provider": s.Provider.GetName(), "bizId": bizId, "requestId": requestId},
 	}, nil
 }
 

@@ -7,8 +7,8 @@ type SMSProvider interface {
 	// signName: 短信签名
 	// templateCode: 短信模板ID
 	// templateParam: 短信模板参数，JSON格式字符串
-	// 返回发送结果和错误信息
-	SendSMS(phoneNumbers []string, signName, templateCode, templateParam string) (bool, error)
+	// 返回发送结果、BizId(发送回执ID)、RequestId(请求ID)和错误信息
+	SendSMS(phoneNumbers []string, signName, templateCode, templateParam string) (bool, string, string, error)
 
 	// QuerySMSStatus 查询短信发送状态
 	// phoneNumber: 手机号码
@@ -18,6 +18,12 @@ type SMSProvider interface {
 
 	// GetName 获取短信服务提供商名称
 	GetName() string
+
+	// GetSignName 获取短信签名
+	GetSignName() string
+
+	// GetTemplateCode 获取短信模板ID
+	GetTemplateCode() string
 }
 
 // SMSConfig 短信配置接口
