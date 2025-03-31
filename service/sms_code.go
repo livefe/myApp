@@ -60,12 +60,19 @@ func (s *smsCodeService) SendCode(phone string, ipAddress, userAgent string) (bo
 		return false, errors.New("手机号不能为空")
 	}
 
+	// 先检查Redis中是否存在未过期的验证码
+	key := SMSCodePrefix + phone
+	existingCode, err := redis.Get(key)
+	// 如果验证码存在且未过期，直接返回成功
+	if err == nil && existingCode != "" {
+		return true, nil
+	}
+
 	// 生成验证码
 	code := s.generateCode()
 
 	// 存储验证码到Redis
-	key := SMSCodePrefix + phone
-	err := redis.Set(key, code, time.Duration(SMSCodeExpire)*time.Second)
+	err = redis.Set(key, code, time.Duration(SMSCodeExpire)*time.Second)
 	if err != nil {
 		return false, fmt.Errorf("存储验证码失败: %v", err)
 	}
