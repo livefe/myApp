@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"myApp/config"
 	"myApp/pkg/sms"
 )
 
@@ -51,7 +50,7 @@ func (s *SMSService) SendSMS(phoneNumbers []string, templateCode string, templat
 	}
 
 	// 获取短信签名
-	signName := config.Conf.SMS.Aliyun.SignName
+	signName := s.Provider.GetSignName()
 	if signName == "" {
 		return nil, errors.New("短信签名不能为空")
 	}
