@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"myApp/config"
@@ -55,7 +56,7 @@ func initLogger(level, filePath string, maxSize, maxBackups, maxAge int, compres
 	}
 
 	// 创建日志目录
-	logDir := filePath[:len(filePath)-len(fmt.Sprintf("%s", filePath[len(filePath)-5:]))]
+	logDir := filepath.Dir(filePath)
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		err = os.MkdirAll(logDir, 0755)
 		if err != nil {
