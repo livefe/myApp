@@ -4,15 +4,33 @@ import (
 	"fmt"
 	"myApp/config"
 	"myApp/model"
+	"myApp/pkg/logger"
 	"myApp/pkg/redis"
 	"myApp/router"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func main() {
 	// 初始化配置
 	config.InitConfig()
+
+	// 初始化日志
+	logger.Init(logger.Config{
+		Level:      "info",
+		FilePath:   "./logs/app.log",
+		MaxSize:    100,
+		MaxBackups: 10,
+		MaxAge:     30,
+		Compress:   true,
+		Console:    true,
+	})
+
+	// 记录应用启动日志
+	logger.Info("应用启动中",
+		zap.String("mode", config.Conf.Server.Mode),
+	)
 
 	// 初始化数据库
 	model.InitDB()
