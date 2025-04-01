@@ -10,9 +10,9 @@ import (
 func SetupRouter(r *gin.Engine) {
 
 	// 加载全局中间件
-	r.Use(middleware.CORS())             // 跨域资源共享中间件
-	r.Use(middleware.StructuredLogger()) // 结构化日志记录中间件
-	r.Use(middleware.RateLimiter())      // 请求速率限制中间件
+	r.Use(middleware.CORS())        // 跨域资源共享中间件
+	r.Use(middleware.Logger())      // 结构化日志记录中间件
+	r.Use(middleware.RateLimiter()) // 请求速率限制中间件
 
 	// 初始化子路由
 	InitUserRouter(r)     // 初始化用户相关路由
