@@ -9,7 +9,6 @@ import (
 	"myApp/router"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 func main() {
@@ -17,20 +16,10 @@ func main() {
 	config.InitConfig()
 
 	// 初始化日志
-	logger.Init(logger.Config{
-		Level:      "info",
-		FilePath:   "./logs/app.log",
-		MaxSize:    100,
-		MaxBackups: 10,
-		MaxAge:     30,
-		Compress:   true,
-		Console:    true,
-	})
+	logger.Init()
 
 	// 记录应用启动日志
-	logger.Info("应用启动中",
-		zap.String("mode", config.Conf.Server.Mode),
-	)
+	logger.WithField("mode", config.Conf.Server.Mode).Info("应用启动中")
 
 	// 初始化数据库
 	model.InitDB()
@@ -55,6 +44,8 @@ func main() {
 	// 启动HTTP服务
 	fmt.Printf("\n🚀 服务端启动成功，监听端口 %d\n", config.Conf.Server.Port)
 	if err := r.Run(fmt.Sprintf(":%d", config.Conf.Server.Port)); err != nil {
-		panic(fmt.Sprintf("服务启动失败: %v", err))
+		logger.WithError(err).Error("服务启动失败")
+		fmt.Printf("服务启动失败: %v\n", err)
+		return
 	}
 }

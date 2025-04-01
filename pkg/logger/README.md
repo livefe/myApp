@@ -16,15 +16,14 @@
 在应用启动时初始化日志：
 
 ```go
-logger.Init(logger.Config{
-    Level:      "info",              // 日志级别: debug, info, warn, error, fatal
-    FilePath:   "./logs/app.log",   // 日志文件路径
-    MaxSize:    100,                // 单个日志文件最大大小，单位MB
-    MaxBackups: 10,                 // 最大保留的旧日志文件数量
-    MaxAge:     30,                 // 保留日志文件的最大天数
-    Compress:   true,               // 是否压缩旧日志文件
-    Console:    true,               // 是否同时输出到控制台
-})
+import (
+    "myApp/pkg/logger"
+    "myApp/config"
+)
+
+// 在应用启动时初始化
+// 注意：需要先调用config.InitConfig()初始化配置
+logger.Init() // 直接从config.Conf获取日志配置
 ```
 
 ### 2. 基本日志记录

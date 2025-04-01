@@ -16,6 +16,7 @@ type Config struct {
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Server   ServerConfig   `mapstructure:"server"`
 	SMS      SMSConfig      `mapstructure:"sms"`
+	Logger   LoggerConfig   `mapstructure:"logger"`
 }
 
 // DatabaseConfig 数据库相关配置
@@ -57,6 +58,17 @@ type AliyunSMSConfig struct {
 	RegionID        string `mapstructure:"region_id" env:"SMS_ALIYUN_REGION_ID"`                 // 地域ID
 	SignName        string `mapstructure:"sign_name" env:"SMS_ALIYUN_SIGN_NAME"`                 // 短信签名
 	TemplateCode    string `mapstructure:"template_code" env:"SMS_ALIYUN_TEMPLATE_CODE"`         // 短信模板ID
+}
+
+// LoggerConfig 日志配置
+type LoggerConfig struct {
+	Level      string `mapstructure:"level" env:"LOGGER_LEVEL"`             // 日志级别: debug, info, warn, error, fatal
+	FilePath   string `mapstructure:"file_path" env:"LOGGER_FILE_PATH"`     // 日志文件路径
+	MaxSize    int    `mapstructure:"max_size" env:"LOGGER_MAX_SIZE"`       // 单个日志文件最大大小，单位MB
+	MaxBackups int    `mapstructure:"max_backups" env:"LOGGER_MAX_BACKUPS"` // 最大保留的旧日志文件数量
+	MaxAge     int    `mapstructure:"max_age" env:"LOGGER_MAX_AGE"`         // 保留日志文件的最大天数
+	Compress   bool   `mapstructure:"compress" env:"LOGGER_COMPRESS"`       // 是否压缩旧日志文件
+	Console    bool   `mapstructure:"console" env:"LOGGER_CONSOLE"`         // 是否同时输出到控制台
 }
 
 var Conf *Config

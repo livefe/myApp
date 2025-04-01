@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	"myApp/config"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -25,38 +27,35 @@ const (
 	FatalLevel = "fatal"
 )
 
-// Config 日志配置
-type Config struct {
-	Level      string // 日志级别: debug, info, warn, error, fatal
-	FilePath   string // 日志文件路径
-	MaxSize    int    // 单个日志文件最大大小，单位MB
-	MaxBackups int    // 最大保留的旧日志文件数量
-	MaxAge     int    // 保留日志文件的最大天数
-	Compress   bool   // 是否压缩旧日志文件
-	Console    bool   // 是否同时输出到控制台
+// Init 初始化日志，直接从config包获取配置
+func Init() {
+	// 从全局配置中获取日志配置
+	logConfig := config.Conf.Logger
+	// 调用内部初始化函数
+	initLogger(logConfig.Level, logConfig.FilePath, logConfig.MaxSize, logConfig.MaxBackups, logConfig.MaxAge, logConfig.Compress, logConfig.Console)
 }
 
-// Init 初始化日志
-func Init(config Config) {
+// initLogger 内部初始化日志函数
+func initLogger(level, filePath string, maxSize, maxBackups, maxAge int, compress, console bool) {
 	// 设置默认值
-	if config.Level == "" {
-		config.Level = InfoLevel
+	if level == "" {
+		level = InfoLevel
 	}
-	if config.FilePath == "" {
-		config.FilePath = "./logs/app.log"
+	if filePath == "" {
+		filePath = "./logs/app.log"
 	}
-	if config.MaxSize == 0 {
-		config.MaxSize = 100
+	if maxSize == 0 {
+		maxSize = 100
 	}
-	if config.MaxBackups == 0 {
-		config.MaxBackups = 10
+	if maxBackups == 0 {
+		maxBackups = 10
 	}
-	if config.MaxAge == 0 {
-		config.MaxAge = 30
+	if maxAge == 0 {
+		maxAge = 30
 	}
 
 	// 创建日志目录
-	logDir := config.FilePath[:len(config.FilePath)-len(fmt.Sprintf("%s", config.FilePath[len(config.FilePath)-5:]))]
+	logDir := filePath[:len(filePath)-len(fmt.Sprintf("%s", filePath[len(filePath)-5:]))]
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		err = os.MkdirAll(logDir, 0755)
 		if err != nil {
@@ -65,20 +64,20 @@ func Init(config Config) {
 	}
 
 	// 设置日志级别
-	var level zapcore.Level
-	switch config.Level {
+	var zapLevel zapcore.Level
+	switch level {
 	case DebugLevel:
-		level = zapcore.DebugLevel
+		zapLevel = zapcore.DebugLevel
 	case InfoLevel:
-		level = zapcore.InfoLevel
+		zapLevel = zapcore.InfoLevel
 	case WarnLevel:
-		level = zapcore.WarnLevel
+		zapLevel = zapcore.WarnLevel
 	case ErrorLevel:
-		level = zapcore.ErrorLevel
+		zapLevel = zapcore.ErrorLevel
 	case FatalLevel:
-		level = zapcore.FatalLevel
+		zapLevel = zapcore.FatalLevel
 	default:
-		level = zapcore.InfoLevel
+		zapLevel = zapcore.InfoLevel
 	}
 
 	// 配置编码器
@@ -102,27 +101,27 @@ func Init(config Config) {
 
 	// 文件输出
 	fileWriter := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   config.FilePath,
-		MaxSize:    config.MaxSize,
-		MaxBackups: config.MaxBackups,
-		MaxAge:     config.MaxAge,
-		Compress:   config.Compress,
+		Filename:   filePath,
+		MaxSize:    maxSize,
+		MaxBackups: maxBackups,
+		MaxAge:     maxAge,
+		Compress:   compress,
 	})
 	fileCore := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
 		fileWriter,
-		level,
+		zapLevel,
 	)
 	cores = append(cores, fileCore)
 
 	// 控制台输出
-	if config.Console {
+	if console {
 		consoleEncoderConfig := encoderConfig
 		consoleEncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		consoleCore := zapcore.NewCore(
 			zapcore.NewConsoleEncoder(consoleEncoderConfig),
 			zapcore.AddSync(os.Stdout),
-			level,
+			zapLevel,
 		)
 		cores = append(cores, consoleCore)
 	}

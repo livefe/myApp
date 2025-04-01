@@ -30,3 +30,13 @@ sms:
     region_id: "cn-hangzhou"                   # 地域ID
     sign_name: "your-sign-name"                # 短信签名
     template_code: "SMS_315625116"             # 短信模板ID
+
+# 日志配置
+logger:
+  level: "info"           # 日志级别: debug, info, warn, error, fatal
+  file_path: "./logs/app.log"  # 日志文件路径
+  max_size: 100           # 单个日志文件最大大小，单位MB
+  max_backups: 10         # 最大保留的旧日志文件数量
+  max_age: 30             # 保留日志文件的最大天数
+  compress: true          # 是否压缩旧日志文件
+  console: true           # 是否同时输出到控制台
