@@ -41,21 +41,16 @@ func InitLogger() {
 	maxAge := logConfig.MaxAge
 	compress := logConfig.Compress
 	console := logConfig.Console
-	// 设置默认值
+
+	// 检查必要的日志配置
 	if level == "" {
-		level = InfoLevel
+		panic("错误: 缺少必需的日志级别配置")
 	}
 	if filePath == "" {
-		filePath = "./logs/app.log"
+		panic("错误: 缺少必需的日志文件路径配置")
 	}
-	if maxSize == 0 {
-		maxSize = 100
-	}
-	if maxBackups == 0 {
-		maxBackups = 10
-	}
-	if maxAge == 0 {
-		maxAge = 30
+	if maxSize == 0 || maxBackups == 0 || maxAge == 0 {
+		panic("错误: 缺少必需的日志文件大小、备份数量或保留天数配置")
 	}
 
 	// 创建日志目录
