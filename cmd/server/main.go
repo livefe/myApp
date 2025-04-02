@@ -16,7 +16,7 @@ func main() {
 	config.InitConfig()
 
 	// 初始化日志
-	logger.Init()
+	logger.InitLogger()
 
 	// 记录应用启动日志
 	logger.WithField("mode", config.Conf.Server.Mode).Info("应用启动中")

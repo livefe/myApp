@@ -23,7 +23,7 @@ import (
 
 // 在应用启动时初始化
 // 注意：需要先调用config.InitConfig()初始化配置
-logger.Init() // 直接从config.Conf获取日志配置
+logger.InitLogger() // 直接从config.Conf获取日志配置
 ```
 
 ### 2. 基本日志记录

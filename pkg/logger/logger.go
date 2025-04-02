@@ -28,16 +28,19 @@ const (
 	FatalLevel = "fatal"
 )
 
-// Init 初始化日志，直接从config包获取配置
-func Init() {
+// InitLogger 初始化日志，直接从config包获取配置
+func InitLogger() {
 	// 从全局配置中获取日志配置
 	logConfig := config.Conf.Logger
-	// 调用内部初始化函数
-	initLogger(logConfig.Level, logConfig.FilePath, logConfig.MaxSize, logConfig.MaxBackups, logConfig.MaxAge, logConfig.Compress, logConfig.Console)
-}
 
-// initLogger 内部初始化日志函数
-func initLogger(level, filePath string, maxSize, maxBackups, maxAge int, compress, console bool) {
+	// 获取配置参数
+	level := logConfig.Level
+	filePath := logConfig.FilePath
+	maxSize := logConfig.MaxSize
+	maxBackups := logConfig.MaxBackups
+	maxAge := logConfig.MaxAge
+	compress := logConfig.Compress
+	console := logConfig.Console
 	// 设置默认值
 	if level == "" {
 		level = InfoLevel
