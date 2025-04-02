@@ -6,7 +6,6 @@ require (
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.6
 	github.com/alibabacloud-go/dysmsapi-20170525/v4 v4.1.2
 	github.com/alibabacloud-go/tea v1.3.6
-	github.com/bxcodec/faker/v3 v3.8.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
