@@ -1,9 +1,10 @@
 package service
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"myApp/model"
 	"myApp/pkg/redis"
 	"myApp/pkg/sms"
@@ -42,13 +43,17 @@ func NewSMSCodeService(userRepo repository.UserRepository, smsRecordRepo reposit
 
 // generateCode 生成随机验证码
 func (s *smsCodeService) generateCode() string {
-	// 设置随机数种子
-	rand.Seed(time.Now().UnixNano())
-
-	// 生成指定长度的随机数字
+	// 使用crypto/rand包生成更安全的随机数
 	code := ""
 	for i := 0; i < SMSCodeLength; i++ {
-		code += strconv.Itoa(rand.Intn(10))
+		// 生成0-9之间的随机数
+		num, err := rand.Int(rand.Reader, big.NewInt(10))
+		if err != nil {
+			// 如果生成失败，回退到使用math/rand
+			code += strconv.Itoa(int(time.Now().UnixNano() % 10))
+			continue
+		}
+		code += strconv.FormatInt(num.Int64(), 10)
 	}
 
 	return code
